@@ -46,7 +46,7 @@ namespace SoftwareRenderer
 
         public byte[] GetBytes()
         {
-            return new byte[] { this.B, this.G, this.R, this.A }; // BGRA32
+            return new byte[] { this.R, this.G, this.B, this.A }; // RGBA32
         }
 
         public Color Multiply(float value)

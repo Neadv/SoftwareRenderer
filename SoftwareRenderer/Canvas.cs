@@ -1,6 +1,8 @@
+using SoftwareRenderer.Interfaces;
+
 namespace SoftwareRenderer
 {
-    public class Canvas
+    public class Canvas : ICanvas
     {
         public int Width { get; }
         public int Height { get; }
@@ -29,12 +31,12 @@ namespace SoftwareRenderer
             if (x < 0 || x >= Width || y < 0 || y >= Height)
                 return;
             
-            int index = y * Width + x;
+            int index = 4*(y * Width + x);
 
-            // BGRA32
-            Bytes[index] = color.B;
+            // RGBA32
+            Bytes[index] = color.R;
             Bytes[index + 1] = color.G;
-            Bytes[index + 2] = color.R;
+            Bytes[index + 2] = color.B;
             Bytes[index + 3] = color.A;
         }
 
@@ -48,7 +50,18 @@ namespace SoftwareRenderer
             
             int index = y * Width + x;
             
-            return new Color(Bytes[index + 2], Bytes[index + 1], Bytes[index], Bytes[index + 3]);
+            return new Color(Bytes[index], Bytes[index + 1], Bytes[index + 2], Bytes[index + 3]);
+        }
+
+        public void Clear(Color color)
+        {
+            for (int y = -Height/2; y < Height/2; y++)
+            {
+                for (int x = -Width/2; x < Width/2; x++)
+                {
+                    SetColor(x, y, color);
+                }
+            }
         }
     }
 }

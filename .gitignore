@@ -3,3 +3,6 @@ bin/
 
 .vscode/
 .vs/
+
+# result image
+result.png
