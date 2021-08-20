@@ -1,4 +1,4 @@
-namespace SoftwareRenderer.Interfaces
+namespace SoftwareRenderer.Common
 {
     public interface ICanvas
     {

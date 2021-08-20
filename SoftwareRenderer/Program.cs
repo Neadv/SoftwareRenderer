@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-using SoftwareRenderer.Interfaces;
+using SoftwareRenderer.Common;
 using SoftwareRenderer.Utils;
 
 namespace SoftwareRenderer
@@ -24,7 +24,7 @@ namespace SoftwareRenderer
                 }
             }
 
-            ICanvasSaver saver = new CanvasSaver();
+            CanvasSaver saver = new CanvasSaver();
             saver.Save(canvas);
 
             sw.Stop();

@@ -1,6 +1,6 @@
 using System;
 
-namespace SoftwareRenderer
+namespace SoftwareRenderer.Common
 {
     public struct Color
     {
@@ -38,23 +38,23 @@ namespace SoftwareRenderer
 
         public Color(int color)
         {
-            this.R = (byte)(color & 255);
-            this.G = (byte)(color & (255 << 8));
-            this.B = (byte)(color & (255 << 16));
-            this.A = (byte)(color & (255 << 24));
+            R = (byte)(color & 255);
+            G = (byte)(color & 255 << 8);
+            B = (byte)(color & 255 << 16);
+            A = (byte)(color & 255 << 24);
         }
 
         public byte[] GetBytes()
         {
-            return new byte[] { this.R, this.G, this.B, this.A }; // RGBA32
+            return new byte[] { R, G, B, A }; // RGBA32
         }
 
         public Color Multiply(float value)
         {
-            byte r = (byte)Math.Clamp(value * this.R, 0, 255);
-            byte g = (byte)Math.Clamp(value * this.G, 0, 255);
-            byte b = (byte)Math.Clamp(value * this.B, 0, 255);
-            byte a = (byte)Math.Clamp(value * this.A, 0, 255);
+            byte r = (byte)Math.Clamp(value * R, 0, 255);
+            byte g = (byte)Math.Clamp(value * G, 0, 255);
+            byte b = (byte)Math.Clamp(value * B, 0, 255);
+            byte a = (byte)Math.Clamp(value * A, 0, 255);
 
             return new Color(r, g, b, a);
         }
@@ -63,20 +63,20 @@ namespace SoftwareRenderer
 
         public Color Add(Color color)
         {
-            var r = (byte)Math.Clamp(this.R + color.R, 0, 255);
-            var g = (byte)Math.Clamp(this.G + color.G, 0, 255);
-            var b = (byte)Math.Clamp(this.B + color.B, 0, 255);
-            var a = (byte)Math.Clamp(this.A + color.A, 0, 255);
+            var r = (byte)Math.Clamp(R + color.R, 0, 255);
+            var g = (byte)Math.Clamp(G + color.G, 0, 255);
+            var b = (byte)Math.Clamp(B + color.B, 0, 255);
+            var a = (byte)Math.Clamp(A + color.A, 0, 255);
 
             return new Color(r, g, b, a);
         }
 
         public Color Substract(Color color)
         {
-            var r = (byte)Math.Clamp(this.R - color.R, 0, 255);
-            var g = (byte)Math.Clamp(this.G - color.G, 0, 255);
-            var b = (byte)Math.Clamp(this.B - color.B, 0, 255);
-            var a = (byte)Math.Clamp(this.A - color.A, 0, 255);
+            var r = (byte)Math.Clamp(R - color.R, 0, 255);
+            var g = (byte)Math.Clamp(G - color.G, 0, 255);
+            var b = (byte)Math.Clamp(B - color.B, 0, 255);
+            var a = (byte)Math.Clamp(A - color.A, 0, 255);
 
             return new Color(r, g, b, a);
         }

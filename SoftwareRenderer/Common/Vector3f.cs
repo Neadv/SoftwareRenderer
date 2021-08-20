@@ -1,6 +1,6 @@
 using System;
 
-namespace SoftwareRenderer
+namespace SoftwareRenderer.Common
 {
     public struct Vector3f
     {

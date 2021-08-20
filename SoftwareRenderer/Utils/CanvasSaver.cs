@@ -1,10 +1,10 @@
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using SoftwareRenderer.Interfaces;
+using SoftwareRenderer.Common;
 
 namespace SoftwareRenderer.Utils
 {
-    public class CanvasSaver : ICanvasSaver
+    public class CanvasSaver
     {
         private const string Path = "../result.png";
 
