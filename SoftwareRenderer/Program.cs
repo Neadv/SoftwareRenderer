@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using SoftwareRenderer.Common;
+using SoftwareRenderer.RayTracer;
 using SoftwareRenderer.Utils;
 
 namespace SoftwareRenderer
@@ -12,23 +13,24 @@ namespace SoftwareRenderer
 
         static void Main(string[] args)
         {
-            var sw = Stopwatch.StartNew();
             ICanvas canvas = new Canvas(Width, Heihgt);
             
-            for (int y = -canvas.Height / 2; y < canvas.Height / 2; y++)
-            {
-                for (int x = -canvas.Width / 2; x < canvas.Width / 2; x++)
-                {
-                    var color = new Color((float)(x + canvas.Width / 2) / canvas.Width, (float)(y + canvas.Height / 2) / canvas.Height, 0);
-                    canvas.SetColor(x, y, color);
-                }
-            }
+            IRenderer renderer = new SoftwareRayTracer();
+            renderer.Initialization();
+
+            var sw = Stopwatch.StartNew();
+
+            renderer.Render(canvas);
+
+            sw.Stop();
+            Console.WriteLine($"Render: {sw.ElapsedMilliseconds}ms");
+            
+            sw.Restart();
 
             CanvasSaver saver = new CanvasSaver();
             saver.Save(canvas);
 
-            sw.Stop();
-            Console.WriteLine($"Elapsed time: {sw.ElapsedMilliseconds}ms");
+            Console.WriteLine($"Save: {sw.ElapsedMilliseconds}ms");
         }
     }
 }
