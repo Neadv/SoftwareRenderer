@@ -73,8 +73,24 @@ namespace SoftwareRenderer.RayTracer
 
         private Color TraceRay(Vector3f center, Vector3f dir, float minDist = 1, float maxDist = float.MaxValue)
         {
+            var closestPoint = ClosestIntersection(center, dir, out var closestSphere, minDist, maxDist);
+            if (closestSphere == null)
+            {
+                return Color.White;
+            }
+
+            var pos = center + closestPoint * dir;
+            var normal = (pos - closestSphere.Position).Normalize();
+
+            var intensity = ComputeLighting(pos, normal, -dir, closestSphere.Specular);
+
+            return intensity * closestSphere.Color;
+        }
+
+        private float ClosestIntersection(Vector3f center, Vector3f dir, out Sphere closestSphere, float minDist = float.MinValue, float maxDist = float.MaxValue)
+        {
             float closestPoint = float.MaxValue;
-            Sphere closestSphere = null;
+            closestSphere = null;
             foreach (var sphere in _scene.Spheres)
             {
                 (float t1, float t2) = IntersectRaySphere(center, dir, sphere);
@@ -89,17 +105,7 @@ namespace SoftwareRenderer.RayTracer
                     closestSphere = sphere;
                 }
             }
-            if (closestSphere == null)
-            {
-                return Color.White;
-            }
-
-            var pos = center + closestPoint * dir;
-            var normal = (pos - closestSphere.Position).Normalize();
-
-            var intensity = ComputeLighting(pos, normal, -dir, closestSphere.Specular);
-
-            return intensity * closestSphere.Color;
+            return closestPoint;
         }
 
         private float ComputeLighting(Vector3f position, Vector3f normal, Vector3f view, float specular)
@@ -114,13 +120,24 @@ namespace SoftwareRenderer.RayTracer
                 else
                 {
                     Vector3f dir;
+                    float maxDist;
                     if (light.Type == LightType.Directional)
                     {
                         dir = light.Position;
+                        maxDist = float.MaxValue;
                     }
                     else
                     {
-                        dir = (light.Position - position).Normalize();
+                        var v = light.Position - position;
+                        dir = v.Normalize();
+                        maxDist = v.Length();
+                    }
+
+                    // Shadow check
+                    ClosestIntersection(position, dir, out var shadowSphere, 0.01f, maxDist);
+                    if (shadowSphere != null)
+                    {
+                        continue;
                     }
 
                     // Diffuse
@@ -142,7 +159,7 @@ namespace SoftwareRenderer.RayTracer
                     }
                 }
             }
-            
+
             return i;
         }
 
