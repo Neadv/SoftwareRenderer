@@ -9,11 +9,11 @@ namespace SoftwareRenderer
     class Program
     {
         public const int Width = 500;
-        public const int Heihgt = 500;
+        public const int Height = 500;
 
         static void Main(string[] args)
         {
-            ICanvas canvas = new Canvas(Width, Heihgt);
+            ICanvas canvas = new Canvas(Width, Height);
             
             IRenderer renderer = new SoftwareRayTracer();
             renderer.Initialization();
