@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using SoftwareRenderer.Common;
 
 namespace SoftwareRenderer.RayTracer
@@ -7,30 +8,32 @@ namespace SoftwareRenderer.RayTracer
     {
         private Vector3f _cameraPos;
         private Viewport _viewport;
-        private Sphere[] _spheres;
+        private Scene _scene;
 
         public void Initialization()
         {
             _cameraPos = new Vector3f(0);
             _viewport = new Viewport(1, 1, 1);
 
-            _spheres = new Sphere[] {
-                new Sphere(
-                    new Vector3f(0, -1, 3),
-                    1,
-                    Color.Red
-                ),
-                new Sphere(
-                    new Vector3f(2, 0, 4),
-                    1,
-                    Color.Blue
-                ),
-                new Sphere(
-                    new Vector3f(-2, 0, 4),
-                    1,
-                    Color.Green
-                ),
-            };
+            _scene = new Scene(
+                new List<Sphere> {
+                    new Sphere(
+                        new Vector3f(0, -1, 3),
+                        1,
+                        Color.Red
+                    ),
+                    new Sphere(
+                        new Vector3f(2, 0, 4),
+                        1,
+                        Color.Blue
+                    ),
+                    new Sphere(
+                        new Vector3f(-2, 0, 4),
+                        1,
+                        Color.Green
+                    ),
+                }
+            );
         }
 
         public void Render(ICanvas canvas)
@@ -55,7 +58,7 @@ namespace SoftwareRenderer.RayTracer
         {
             float closestPoint = float.MaxValue;
             Sphere closestSphere = null;
-            foreach (var sphere in _spheres)
+            foreach (var sphere in _scene.Spheres)
             {
                 (float t1, float t2) = IntersectRaySphere(center, dir, sphere);
                 if (t1 > minDist && t1 < maxDist && t1 < closestPoint)
