@@ -55,12 +55,18 @@ namespace SoftwareRenderer.Common
             return this / this.Length();
         }
 
+        public Vector3f Reflect(Vector3f normal)
+        {
+            return 2 * normal * normal.Dot(this) - this;
+        }
+
         public float LengthSquare()
         {
             return this.X * this.X + this.Y * this.Y + this.Z * this.Z;
         }
 
         public static Vector3f operator *(float value, Vector3f v) => v.Multiply(value);
+        public static Vector3f operator *(Vector3f v, float value) => v.Multiply(value);
         public static Vector3f operator /(Vector3f v, float value) => v.Divide(value);
         public static Vector3f operator +(Vector3f v1, Vector3f v2) => v1.Add(v2);
         public static Vector3f operator -(Vector3f v1, Vector3f v2) => v1.Substract(v2);

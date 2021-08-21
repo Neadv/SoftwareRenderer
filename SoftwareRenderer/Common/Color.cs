@@ -54,9 +54,8 @@ namespace SoftwareRenderer.Common
             byte r = (byte)Math.Clamp(value * R, 0, 255);
             byte g = (byte)Math.Clamp(value * G, 0, 255);
             byte b = (byte)Math.Clamp(value * B, 0, 255);
-            byte a = (byte)Math.Clamp(value * A, 0, 255);
 
-            return new Color(r, g, b, a);
+            return new Color(r, g, b, this.A);
         }
 
         public Color Multiply(int value) => Multiply(value);
@@ -66,9 +65,8 @@ namespace SoftwareRenderer.Common
             var r = (byte)Math.Clamp(R + color.R, 0, 255);
             var g = (byte)Math.Clamp(G + color.G, 0, 255);
             var b = (byte)Math.Clamp(B + color.B, 0, 255);
-            var a = (byte)Math.Clamp(A + color.A, 0, 255);
 
-            return new Color(r, g, b, a);
+            return new Color(r, g, b, this.A);
         }
 
         public Color Substract(Color color)
@@ -76,9 +74,8 @@ namespace SoftwareRenderer.Common
             var r = (byte)Math.Clamp(R - color.R, 0, 255);
             var g = (byte)Math.Clamp(G - color.G, 0, 255);
             var b = (byte)Math.Clamp(B - color.B, 0, 255);
-            var a = (byte)Math.Clamp(A - color.A, 0, 255);
 
-            return new Color(r, g, b, a);
+            return new Color(r, g, b, this.A);
         }
 
         public static Color operator *(float value, Color color) => color.Multiply(value);

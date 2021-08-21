@@ -15,25 +15,42 @@ namespace SoftwareRenderer.RayTracer
             _cameraPos = new Vector3f(0);
             _viewport = new Viewport(1, 1, 1);
 
-            _scene = new Scene(
-                new List<Sphere> {
+            _scene = new Scene
+            {
+                Spheres = new List<Sphere>
+                {
                     new Sphere(
-                        new Vector3f(0, -1, 3),
-                        1,
-                        Color.Red
+                        pos: new Vector3f(0, -1, 3),
+                        r: 1,
+                        color: Color.Red,
+                        specular: 500
                     ),
                     new Sphere(
-                        new Vector3f(2, 0, 4),
-                        1,
-                        Color.Blue
+                        pos: new Vector3f(2, 0, 4),
+                        r: 1,
+                        color: Color.Blue,
+                        specular: 500
                     ),
                     new Sphere(
-                        new Vector3f(-2, 0, 4),
-                        1,
-                        Color.Green
+                        pos: new Vector3f(-2, 0, 4),
+                        r: 1,
+                        color: Color.Green,
+                        specular: 10
                     ),
+                    new Sphere(
+                        pos: new Vector3f(0, -5001, 0),
+                        r: 5000,
+                        color: new Color(255, 255, 0),
+                        specular: 1000
+                    )
+                },
+                Lights = new List<Light>
+                {
+                    Light.CreateAmbient(0.2f),
+                    Light.CreatePoint(0.6f, new Vector3f(2, 1, 0)),
+                    Light.CreateDirectional(0.2f, new Vector3f(1, 4, 4))
                 }
-            );
+            };
         }
 
         public void Render(ICanvas canvas)
@@ -76,7 +93,57 @@ namespace SoftwareRenderer.RayTracer
             {
                 return Color.White;
             }
-            return closestSphere.Color;
+
+            var pos = center + closestPoint * dir;
+            var normal = (pos - closestSphere.Position).Normalize();
+
+            var intensity = ComputeLighting(pos, normal, -dir, closestSphere.Specular);
+
+            return intensity * closestSphere.Color;
+        }
+
+        private float ComputeLighting(Vector3f position, Vector3f normal, Vector3f view, float specular)
+        {
+            float i = 0;
+            foreach (var light in _scene.Lights)
+            {
+                if (light.Type == LightType.Ambient)
+                {
+                    i += light.Intensity;
+                }
+                else
+                {
+                    Vector3f dir;
+                    if (light.Type == LightType.Directional)
+                    {
+                        dir = light.Position;
+                    }
+                    else
+                    {
+                        dir = (light.Position - position).Normalize();
+                    }
+
+                    // Diffuse
+                    var dotDir = dir.Dot(normal);
+                    if (dotDir > 0)
+                    {
+                        i += light.Intensity * dotDir;
+                    }
+
+                    // Specular
+                    if (specular >= 0)
+                    {
+                        var reflect = dir.Reflect(normal);
+                        var dotView = view.Dot(reflect);
+                        if (dotView > 0)
+                        {
+                            i += light.Intensity * MathF.Pow(dotView, specular);
+                        }
+                    }
+                }
+            }
+            
+            return i;
         }
 
         private (float t1, float t2) IntersectRaySphere(Vector3f center, Vector3f dir, Sphere sphere)
