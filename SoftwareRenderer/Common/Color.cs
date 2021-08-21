@@ -79,6 +79,7 @@ namespace SoftwareRenderer.Common
         }
 
         public static Color operator *(float value, Color color) => color.Multiply(value);
+        public static Color operator *(Color color, float value) => color.Multiply(value);
         public static Color operator *(int value, Color color) => color.Multiply(value);
         public static Color operator +(Color colorA, Color colorB) => colorA.Add(colorB);
         public static Color operator -(Color colorA, Color colorB) => colorA.Substract(colorB);

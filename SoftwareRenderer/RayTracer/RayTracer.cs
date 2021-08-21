@@ -23,25 +23,29 @@ namespace SoftwareRenderer.RayTracer
                         pos: new Vector3f(0, -1, 3),
                         r: 1,
                         color: Color.Red,
-                        specular: 500
+                        specular: 500,
+                        reflective: 0.2f
                     ),
                     new Sphere(
                         pos: new Vector3f(2, 0, 4),
                         r: 1,
                         color: Color.Blue,
-                        specular: 500
+                        specular: 500,
+                        reflective: 0.3f
                     ),
                     new Sphere(
                         pos: new Vector3f(-2, 0, 4),
                         r: 1,
                         color: Color.Green,
-                        specular: 10
+                        specular: 10,
+                        reflective: 0.4f
                     ),
                     new Sphere(
                         pos: new Vector3f(0, -5001, 0),
                         r: 5000,
                         color: new Color(255, 255, 0),
-                        specular: 1000
+                        specular: 1000,
+                        reflective: 0.5f
                     )
                 },
                 Lights = new List<Light>
@@ -65,29 +69,38 @@ namespace SoftwareRenderer.RayTracer
 
                     var dir = (new Vector3f(posX, posY, posZ) - _cameraPos).Normalize();
 
-                    var pixel = TraceRay(_cameraPos, dir);
+                    var pixel = TraceRay(_cameraPos, dir, 3, 0.05f, float.MaxValue);
                     canvas.SetColor(x, y, pixel);
                 }
             }
         }
 
-        private Color TraceRay(Vector3f center, Vector3f dir, float minDist = 1, float maxDist = float.MaxValue)
+        private Color TraceRay(Vector3f center, Vector3f dir, int recursionDepth, float minDist = 0.01f, float maxDist = float.MaxValue)
         {
             var closestPoint = ClosestIntersection(center, dir, out var closestSphere, minDist, maxDist);
             if (closestSphere == null)
             {
-                return Color.White;
+                return Color.Black;
             }
 
+            // local color
             var pos = center + closestPoint * dir;
             var normal = (pos - closestSphere.Position).Normalize();
-
             var intensity = ComputeLighting(pos, normal, -dir, closestSphere.Specular);
+            var localColor = intensity * closestSphere.Color;
 
-            return intensity * closestSphere.Color;
+            if (recursionDepth <= 0 || closestSphere.Reflective <= 0)
+            {
+                return localColor;
+            }
+
+            var reflectedDir = -dir.Reflect(normal);
+            var reflectedColor = TraceRay(pos, reflectedDir, recursionDepth - 1, minDist, maxDist);
+
+            return localColor * (1 - closestSphere.Reflective) + reflectedColor * (closestSphere.Reflective); 
         }
 
-        private float ClosestIntersection(Vector3f center, Vector3f dir, out Sphere closestSphere, float minDist = float.MinValue, float maxDist = float.MaxValue)
+        private float ClosestIntersection(Vector3f center, Vector3f dir, out Sphere closestSphere, float minDist = 0.01f, float maxDist = float.MaxValue)
         {
             float closestPoint = float.MaxValue;
             closestSphere = null;
