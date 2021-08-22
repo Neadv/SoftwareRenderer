@@ -15,7 +15,7 @@ namespace SoftwareRenderer
         static void Main(string[] args)
         {
             Canvas canvas = new Canvas(Width, Height);
-            canvas.Clear(Color.Black);
+            canvas.Clear(Color.White);
             
             IRenderer renderer = new SoftwareRasterizer();
             renderer.Initialization();
