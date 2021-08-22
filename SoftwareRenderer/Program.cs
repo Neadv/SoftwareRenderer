@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using SoftwareRenderer.Common;
 using SoftwareRenderer.RayTracer;
+using SoftwareRenderer.Rasterizer;
 using SoftwareRenderer.Utils;
 
 namespace SoftwareRenderer
@@ -13,9 +14,10 @@ namespace SoftwareRenderer
 
         static void Main(string[] args)
         {
-            ICanvas canvas = new Canvas(Width, Height);
+            Canvas canvas = new Canvas(Width, Height);
+            canvas.Clear(Color.Black);
             
-            IRenderer renderer = new SoftwareRayTracer();
+            IRenderer renderer = new SoftwareRasterizer();
             renderer.Initialization();
 
             var sw = Stopwatch.StartNew();
