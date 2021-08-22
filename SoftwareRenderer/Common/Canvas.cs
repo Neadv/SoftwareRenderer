@@ -61,5 +61,9 @@ namespace SoftwareRenderer.Common
                 }
             }
         }
+
+        public void SetColor(Vector2i point, Color color) => SetColor(point.X, point.Y, color);
+
+        public Color GetColor(Vector2i point) => GetColor(point.X, point.Y);
     }
 }
