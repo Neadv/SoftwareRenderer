@@ -59,9 +59,9 @@ namespace SoftwareRenderer.RayTracer
 
         public void Render(ICanvas canvas)
         {
-            for (int y = -canvas.Height / 2; y < canvas.Height / 2; y++)
+            for (int y = -canvas.Height / 2; y <= canvas.Height / 2; y++)
             {
-                for (int x = -canvas.Width / 2; x < canvas.Width / 2; x++)
+                for (int x = -canvas.Width / 2; x <= canvas.Width / 2; x++)
                 {
                     float posX = x * _viewport.Width / canvas.Width;
                     float posY = y * _viewport.Height / canvas.Height;

@@ -7,12 +7,12 @@ namespace SoftwareRenderer.Common
 
         public byte[] Bytes { get; private set; }
 
-        public Canvas(int width, int heihgt)
+        public Canvas(int width, int height)
         {
             Width = width;
-            Height = heihgt;
+            Height = height;
 
-            Bytes = new byte[width * heihgt * 4];
+            Bytes = new byte[width * height * 4];
         }
 
         public Color this[int x, int y]
@@ -53,9 +53,9 @@ namespace SoftwareRenderer.Common
 
         public void Clear(Color color)
         {
-            for (int y = -Height / 2; y < Height / 2; y++)
+            for (int y = -Height / 2; y <= Height / 2; y++)
             {
-                for (int x = -Width / 2; x < Width / 2; x++)
+                for (int x = -Width / 2; x <= Width / 2; x++)
                 {
                     SetColor(x, y, color);
                 }
