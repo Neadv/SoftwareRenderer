@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using SoftwareRenderer.Common;
 
 namespace SoftwareRenderer.Rasterizer
@@ -16,8 +17,8 @@ namespace SoftwareRenderer.Rasterizer
         {
             _canvas = canvas;
 
-            DrawLine(new Vector2i(-200, -100), new Vector2i(200, 100), Color.Black);
-            DrawLine(new Vector2i(-50, -200), new Vector2i(60, 240), Color.Black);
+            DrawFilledTriangle(new Vector2i(-200, -250), new Vector2i(200, 50), new Vector2i(20, 250), Color.Green);
+            DrawWireframeTriangle(new Vector2i(-200, -250), new Vector2i(200, 50), new Vector2i(20, 250), Color.Black);
         }
 
         private void DrawLine(Vector2i p0, Vector2i p1, Color color)
@@ -44,6 +45,55 @@ namespace SoftwareRenderer.Rasterizer
                 for (int y = p0.Y; y <= p1.Y; y++)
                 {
                     _canvas.SetColor((int)xs[y - p0.Y], y, color);
+                }
+            }
+        }
+
+        private void DrawWireframeTriangle(Vector2i p0, Vector2i p1, Vector2i p2, Color color)
+        {
+            DrawLine(p0, p1, color);
+            DrawLine(p1, p2, color);
+            DrawLine(p0, p2, color);
+        }
+
+        private void DrawFilledTriangle(Vector2i p0, Vector2i p1, Vector2i p2, Color color)
+        {
+            // Sort the points 
+            if (p1.Y < p0.Y) Swap(ref p1, ref p0);
+            if (p2.Y < p0.Y) Swap(ref p2, ref p0);
+            if (p2.Y < p1.Y) Swap(ref p2, ref p1);
+
+            // Compute the x coordinates of the triangles edges
+            var x01 = Interpolate(p0.Y, p0.X, p1.Y, p1.X);
+            var x12 = Interpolate(p1.Y, p1.X, p2.Y, p2.X);
+            var x02 = Interpolate(p0.Y, p0.X, p2.Y, p2.X);
+
+            // Concatenate the short sides
+            var x012 = new float[x02.Length];
+            Array.Copy(x01, x012, x01.Length - 1);
+            Array.Copy(x12, 0, x012, x01.Length - 1, x12.Length);
+
+            // Determine which is left and which is right
+            var m = x012.Length / 2;
+            float[] x_left;
+            float[] x_right;
+            if (x02[m] < x012[m])
+            {
+                x_left = x02;
+                x_right = x012;
+            }
+            else
+            {
+                x_left = x012;
+                x_right = x02;
+            }
+
+            // Draw the horizontal segments
+            for (int y = p0.Y; y < p2.Y; y++)
+            {
+                for (int x = (int)x_left[y - p0.Y]; x < x_right[y - p0.Y]; x++)
+                {
+                    _canvas.SetColor(x, y, color);
                 }
             }
         }
