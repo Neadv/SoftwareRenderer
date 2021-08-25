@@ -17,8 +17,7 @@ namespace SoftwareRenderer.Rasterizer
         {
             _canvas = canvas;
 
-            DrawFilledTriangle(new Vector2i(-200, -250), new Vector2i(200, 50), new Vector2i(20, 250), Color.Green);
-            DrawWireframeTriangle(new Vector2i(-200, -250), new Vector2i(200, 50), new Vector2i(20, 250), Color.Black);
+            DrawShadedTriangle(new Vector2i(-200, -250), new Vector2i(200, 50), new Vector2i(20, 250), new float[] { 0.3f, 0.1f, 1 }, Color.Green);
         }
 
         private void DrawLine(Vector2i p0, Vector2i p1, Color color)
@@ -98,7 +97,80 @@ namespace SoftwareRenderer.Rasterizer
             }
         }
 
-        private float[] Interpolate(int i0, int d0, int i1, int d1)
+        private void DrawShadedTriangle(Vector2i p0, Vector2i p1, Vector2i p2, float[] attrs, Color color)
+        {
+            // Sort the points 
+            if (p1.Y < p0.Y)
+            {
+                Swap(ref p1, ref p0);
+                Swap(ref attrs[1], ref attrs[0]);
+            }
+            if (p2.Y < p0.Y)
+            {
+                Swap(ref p2, ref p0);
+                Swap(ref attrs[2], ref attrs[0]);
+            }
+            if (p2.Y < p1.Y)
+            {
+                Swap(ref p2, ref p1);
+                Swap(ref attrs[2], ref attrs[1]);
+            }
+
+            // Compute the x coordinates and h of the triangles edges
+            var x01 = Interpolate(p0.Y, p0.X, p1.Y, p1.X);
+            var h01 = Interpolate(p0.Y, attrs[0], p1.Y, attrs[1]);
+
+            var x12 = Interpolate(p1.Y, p1.X, p2.Y, p2.X);
+            var h12 = Interpolate(p1.Y, attrs[1], p2.Y, attrs[2]);
+
+            var x02 = Interpolate(p0.Y, p0.X, p2.Y, p2.X);
+            var h02 = Interpolate(p0.Y, attrs[0], p2.Y, attrs[2]);
+
+            // Concatenate the short sides
+            var x012 = new float[x02.Length];
+            Array.Copy(x01, x012, x01.Length - 1);
+            Array.Copy(x12, 0, x012, x01.Length - 1, x12.Length);
+
+            var h012 = new float[h02.Length];
+            Array.Copy(h01, h012, h01.Length - 1);
+            Array.Copy(h12, 0, h012, h01.Length - 1, h12.Length);
+
+            // Determine which is left and which is right
+            var m = x012.Length / 2;
+            float[] x_left, x_right, h_left, h_right;
+            if (x02[m] < x012[m])
+            {
+                x_left = x02;
+                x_right = x012;
+
+                h_left = h02;
+                h_right = h012;
+            }
+            else
+            {
+                x_left = x012;
+                x_right = x02;
+
+                h_left = h012;
+                h_right = h02;
+            }
+
+            // Draw the horizontal segments
+            for (int y = p0.Y; y < p2.Y; y++)
+            {
+                int x_l = (int)x_left[y - p0.Y];
+                int x_r = (int)x_right[y - p0.Y];
+
+                float[] h_segment = Interpolate(x_l, h_left[y - p0.Y], x_r, h_right[y - p0.Y]);
+                for (int x = x_l; x < x_r; x++)
+                {
+                    var shadedColor = h_segment[x - x_l] * color;
+                    _canvas.SetColor(x, y, shadedColor);
+                }
+            }
+        }
+
+        private float[] Interpolate(int i0, float d0, int i1, float d1)
         {
             if (i0 == i1)
             {
