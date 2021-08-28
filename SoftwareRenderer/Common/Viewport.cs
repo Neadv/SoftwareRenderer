@@ -1,4 +1,4 @@
-namespace SoftwareRenderer.RayTracer
+namespace SoftwareRenderer.Common
 {
     public class Viewport
     {

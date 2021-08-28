@@ -7,17 +7,48 @@ namespace SoftwareRenderer.Rasterizer
     public class SoftwareRasterizer : IRenderer
     {
         private ICanvas _canvas;
+        private Vector3f _cameraPos;
+        private Viewport _viewport;
 
         public void Initialization()
         {
-
+            _cameraPos = new Vector3f();
+            _viewport = new Viewport(1, 1, 1);
         }
 
         public void Render(ICanvas canvas)
         {
             _canvas = canvas;
 
-            DrawShadedTriangle(new Vector2i(-200, -250), new Vector2i(200, 50), new Vector2i(20, 250), new float[] { 0.3f, 0.1f, 1 }, Color.Green);
+            // The four "front" vertices
+            var vAf = new Vector3f(-2, -0.5f, 5);
+            var vBf = new Vector3f(-2, 0.5f, 5);
+            var vCf = new Vector3f(-1, 0.5f, 5);
+            var vDf = new Vector3f(-1, -0.5f, 5);
+
+            // The four "back" vertices
+            var vAb = new Vector3f(-2, -0.5f, 6);
+            var vBb = new Vector3f(-2, 0.5f, 6);
+            var vCb = new Vector3f(-1, 0.5f, 6);
+            var vDb = new Vector3f(-1, -0.5f, 6);
+
+            // The front face
+            DrawLine(PointToCanvas(vAf), PointToCanvas(vBf), Color.Blue);
+            DrawLine(PointToCanvas(vBf), PointToCanvas(vCf), Color.Blue);
+            DrawLine(PointToCanvas(vCf), PointToCanvas(vDf), Color.Blue);
+            DrawLine(PointToCanvas(vDf), PointToCanvas(vAf), Color.Blue);
+
+            // The back face
+            DrawLine(PointToCanvas(vAb), PointToCanvas(vBb), Color.Red);
+            DrawLine(PointToCanvas(vBb), PointToCanvas(vCb), Color.Red);
+            DrawLine(PointToCanvas(vCb), PointToCanvas(vDb), Color.Red);
+            DrawLine(PointToCanvas(vDb), PointToCanvas(vAb), Color.Red);
+
+            // The front-to-back edges
+            DrawLine(PointToCanvas(vAf), PointToCanvas(vAb), Color.Green);
+            DrawLine(PointToCanvas(vBf), PointToCanvas(vBb), Color.Green);
+            DrawLine(PointToCanvas(vCf), PointToCanvas(vCb), Color.Green);
+            DrawLine(PointToCanvas(vDf), PointToCanvas(vDb), Color.Green);
         }
 
         private void DrawLine(Vector2i p0, Vector2i p1, Color color)
@@ -192,6 +223,21 @@ namespace SoftwareRenderer.Rasterizer
             T tmp = obj1;
             obj1 = obj2;
             obj2 = tmp;
+        }
+
+        private Vector2i PointToCanvas(Vector3f point)
+        {
+            var viewportPoint = PointToViewport(point);
+            int x = (int)((viewportPoint.X * _canvas.Width) / _viewport.Width);
+            int y = (int)((viewportPoint.Y * _canvas.Height) / _viewport.Height);
+            return new Vector2i(x, y);
+        }
+
+        private Vector3f PointToViewport(Vector3f point)
+        {
+            var x = (point.X * _viewport.Distance) / point.Z;
+            var y = (point.Y * _viewport.Distance) / point.Z;
+            return new Vector3f(x, y, _viewport.Distance);
         }
     }
 }
