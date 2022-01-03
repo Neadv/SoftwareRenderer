@@ -1,18 +1,19 @@
 using System;
 using System.Collections.Generic;
 using SoftwareRenderer.Common;
+using SoftwareRenderer.Utils;
 
 namespace SoftwareRenderer.Rasterizer
 {
     public class SoftwareRasterizer : IRenderer
     {
         private ICanvas _canvas;
-        private Vector3f _cameraPos;
+        private Camera _camera;
         private Viewport _viewport;
 
         public void Initialization()
         {
-            _cameraPos = new Vector3f();
+            _camera = new Camera();
             _viewport = new Viewport(1, 1, 1);
         }
 
@@ -20,35 +21,53 @@ namespace SoftwareRenderer.Rasterizer
         {
             _canvas = canvas;
 
-            // The four "front" vertices
-            var vAf = new Vector3f(-2, -0.5f, 5);
-            var vBf = new Vector3f(-2, 0.5f, 5);
-            var vCf = new Vector3f(-1, 0.5f, 5);
-            var vDf = new Vector3f(-1, -0.5f, 5);
+            _camera.Position = new Vector3f(-3, 1, 2);
+            _camera.Orientation = TransformHelper.MakeOYRotationMatrix(-30);
 
-            // The four "back" vertices
-            var vAb = new Vector3f(-2, -0.5f, 6);
-            var vBb = new Vector3f(-2, 0.5f, 6);
-            var vCb = new Vector3f(-1, 0.5f, 6);
-            var vDb = new Vector3f(-1, -0.5f, 6);
+            Scene scene = new Scene();
 
-            // The front face
-            DrawLine(PointToCanvas(vAf), PointToCanvas(vBf), Color.Blue);
-            DrawLine(PointToCanvas(vBf), PointToCanvas(vCf), Color.Blue);
-            DrawLine(PointToCanvas(vCf), PointToCanvas(vDf), Color.Blue);
-            DrawLine(PointToCanvas(vDf), PointToCanvas(vAf), Color.Blue);
+            Mesh cube = new Cube(2, Color.Red, Color.Green, Color.Blue, Color.Red, Color.Green, Color.Blue);
 
-            // The back face
-            DrawLine(PointToCanvas(vAb), PointToCanvas(vBb), Color.Red);
-            DrawLine(PointToCanvas(vBb), PointToCanvas(vCb), Color.Red);
-            DrawLine(PointToCanvas(vCb), PointToCanvas(vDb), Color.Red);
-            DrawLine(PointToCanvas(vDb), PointToCanvas(vAb), Color.Red);
+            scene.Instances.Add(new Instance(cube, new Vector3f(-1.5f, 0, 7), 0.75f));
+            scene.Instances.Add(new Instance(cube, new Vector3f(1.25f, 2.5f, 7.5f), TransformHelper.MakeOYRotationMatrix(195), 1));
 
-            // The front-to-back edges
-            DrawLine(PointToCanvas(vAf), PointToCanvas(vAb), Color.Green);
-            DrawLine(PointToCanvas(vBf), PointToCanvas(vBb), Color.Green);
-            DrawLine(PointToCanvas(vCf), PointToCanvas(vCb), Color.Green);
-            DrawLine(PointToCanvas(vDf), PointToCanvas(vDb), Color.Green);
+            RenderScene(scene);
+        }
+
+        public void RenderScene(Scene scene)
+        {
+            var cameraMatrix = _camera.Orientation.Transpose() * TransformHelper.MakeTranslationMatrix(-_camera.Position);
+
+            foreach (var instance in scene.Instances)
+            {
+                var transform = cameraMatrix * instance.Transform;
+                RenderModel(instance, transform);
+            }
+        }
+
+        private void RenderModel(Instance instance, Matrix4x4 transform)
+        {
+            var mesh = instance.Mesh;
+            var projected = new Vector2i[mesh.Vertices.Count];
+            for (int i = 0; i < mesh.Vertices.Count; i++)
+            {
+                var vertex = mesh.Vertices[i];
+                var vert4 = new Vector4f(vertex.X, vertex.Y, vertex.Z, 1);
+                var transformed = transform * vert4;
+                projected[i] = PointToCanvas(new Vector3f(transformed.X, transformed.Y, transformed.Z));
+            }
+            foreach (var triangle in mesh.Triangles)
+            {
+                RenderTriangle(triangle, projected);
+            }
+        }
+
+        private void RenderTriangle(Triangle triangle, Vector2i[] projected)
+        {
+            DrawWireframeTriangle(projected[triangle.V1],
+                                  projected[triangle.V2],
+                                  projected[triangle.V3],
+                                  triangle.Color);
         }
 
         private void DrawLine(Vector2i p0, Vector2i p1, Color color)
@@ -57,9 +76,9 @@ namespace SoftwareRenderer.Rasterizer
             {
                 if (p0.X > p1.X)
                 {
-                    Swap(ref p0, ref p1);
+                    MathHelper.Swap(ref p0, ref p1);
                 }
-                var ys = Interpolate(p0.X, p0.Y, p1.X, p1.Y);
+                var ys = MathHelper.Interpolate(p0.X, p0.Y, p1.X, p1.Y);
                 for (int x = p0.X; x <= p1.X; x++)
                 {
                     _canvas.SetColor(x, (int)ys[x - p0.X], color);
@@ -69,9 +88,9 @@ namespace SoftwareRenderer.Rasterizer
             {
                 if (p0.Y > p1.Y)
                 {
-                    Swap(ref p0, ref p1);
+                    MathHelper.Swap(ref p0, ref p1);
                 }
-                var xs = Interpolate(p0.Y, p0.X, p1.Y, p1.X);
+                var xs = MathHelper.Interpolate(p0.Y, p0.X, p1.Y, p1.X);
                 for (int y = p0.Y; y <= p1.Y; y++)
                 {
                     _canvas.SetColor((int)xs[y - p0.Y], y, color);
@@ -89,14 +108,14 @@ namespace SoftwareRenderer.Rasterizer
         private void DrawFilledTriangle(Vector2i p0, Vector2i p1, Vector2i p2, Color color)
         {
             // Sort the points 
-            if (p1.Y < p0.Y) Swap(ref p1, ref p0);
-            if (p2.Y < p0.Y) Swap(ref p2, ref p0);
-            if (p2.Y < p1.Y) Swap(ref p2, ref p1);
+            if (p1.Y < p0.Y) MathHelper.Swap(ref p1, ref p0);
+            if (p2.Y < p0.Y) MathHelper.Swap(ref p2, ref p0);
+            if (p2.Y < p1.Y) MathHelper.Swap(ref p2, ref p1);
 
             // Compute the x coordinates of the triangles edges
-            var x01 = Interpolate(p0.Y, p0.X, p1.Y, p1.X);
-            var x12 = Interpolate(p1.Y, p1.X, p2.Y, p2.X);
-            var x02 = Interpolate(p0.Y, p0.X, p2.Y, p2.X);
+            var x01 = MathHelper.Interpolate(p0.Y, p0.X, p1.Y, p1.X);
+            var x12 = MathHelper.Interpolate(p1.Y, p1.X, p2.Y, p2.X);
+            var x02 = MathHelper.Interpolate(p0.Y, p0.X, p2.Y, p2.X);
 
             // Concatenate the short sides
             var x012 = new float[x02.Length];
@@ -133,29 +152,29 @@ namespace SoftwareRenderer.Rasterizer
             // Sort the points 
             if (p1.Y < p0.Y)
             {
-                Swap(ref p1, ref p0);
-                Swap(ref attrs[1], ref attrs[0]);
+                MathHelper.Swap(ref p1, ref p0);
+                MathHelper.Swap(ref attrs[1], ref attrs[0]);
             }
             if (p2.Y < p0.Y)
             {
-                Swap(ref p2, ref p0);
-                Swap(ref attrs[2], ref attrs[0]);
+                MathHelper.Swap(ref p2, ref p0);
+                MathHelper.Swap(ref attrs[2], ref attrs[0]);
             }
             if (p2.Y < p1.Y)
             {
-                Swap(ref p2, ref p1);
-                Swap(ref attrs[2], ref attrs[1]);
+                MathHelper.Swap(ref p2, ref p1);
+                MathHelper.Swap(ref attrs[2], ref attrs[1]);
             }
 
             // Compute the x coordinates and h of the triangles edges
-            var x01 = Interpolate(p0.Y, p0.X, p1.Y, p1.X);
-            var h01 = Interpolate(p0.Y, attrs[0], p1.Y, attrs[1]);
+            var x01 = MathHelper.Interpolate(p0.Y, p0.X, p1.Y, p1.X);
+            var h01 = MathHelper.Interpolate(p0.Y, attrs[0], p1.Y, attrs[1]);
 
-            var x12 = Interpolate(p1.Y, p1.X, p2.Y, p2.X);
-            var h12 = Interpolate(p1.Y, attrs[1], p2.Y, attrs[2]);
+            var x12 = MathHelper.Interpolate(p1.Y, p1.X, p2.Y, p2.X);
+            var h12 = MathHelper.Interpolate(p1.Y, attrs[1], p2.Y, attrs[2]);
 
-            var x02 = Interpolate(p0.Y, p0.X, p2.Y, p2.X);
-            var h02 = Interpolate(p0.Y, attrs[0], p2.Y, attrs[2]);
+            var x02 = MathHelper.Interpolate(p0.Y, p0.X, p2.Y, p2.X);
+            var h02 = MathHelper.Interpolate(p0.Y, attrs[0], p2.Y, attrs[2]);
 
             // Concatenate the short sides
             var x012 = new float[x02.Length];
@@ -192,7 +211,7 @@ namespace SoftwareRenderer.Rasterizer
                 int x_l = (int)x_left[y - p0.Y];
                 int x_r = (int)x_right[y - p0.Y];
 
-                float[] h_segment = Interpolate(x_l, h_left[y - p0.Y], x_r, h_right[y - p0.Y]);
+                float[] h_segment = MathHelper.Interpolate(x_l, h_left[y - p0.Y], x_r, h_right[y - p0.Y]);
                 for (int x = x_l; x < x_r; x++)
                 {
                     var shadedColor = h_segment[x - x_l] * color;
@@ -201,31 +220,7 @@ namespace SoftwareRenderer.Rasterizer
             }
         }
 
-        private float[] Interpolate(int i0, float d0, int i1, float d1)
-        {
-            if (i0 == i1)
-            {
-                return new float[] { d0 };
-            }
-            float[] values = new float[i1 - i0 + 1];
-            float a = (float)(d1 - d0) / (i1 - i0);
-            float d = d0;
-            for (int i = i0; i <= i1; i++)
-            {
-                values[i - i0] = d;
-                d += a;
-            }
-            return values;
-        }
-
-        private void Swap<T>(ref T obj1, ref T obj2)
-        {
-            T tmp = obj1;
-            obj1 = obj2;
-            obj2 = tmp;
-        }
-
-        private Vector2i PointToCanvas(Vector3f point)
+        private Vector2i PointToCanvas(Common.Vector3f point)
         {
             var viewportPoint = PointToViewport(point);
             int x = (int)((viewportPoint.X * _canvas.Width) / _viewport.Width);
@@ -233,7 +228,7 @@ namespace SoftwareRenderer.Rasterizer
             return new Vector2i(x, y);
         }
 
-        private Vector3f PointToViewport(Vector3f point)
+        private Common.Vector3f PointToViewport(Common.Vector3f point)
         {
             var x = (point.X * _viewport.Distance) / point.Z;
             var y = (point.Y * _viewport.Distance) / point.Z;
