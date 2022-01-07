@@ -11,6 +11,7 @@ namespace SoftwareRenderer.Rasterizer
         public Matrix4x4 Orientation { get; }
         public Vector3f Position { get; }
 
+
         public Instance(Mesh mesh, Vector3f position, Matrix4x4 orientation, float scale)
         {
             Mesh = mesh;
@@ -31,7 +32,14 @@ namespace SoftwareRenderer.Rasterizer
         { }
 
         public Instance(Mesh mesh)
-            : this(mesh, new Vector3f(0), Matrix4x4.Identity, 1)
-        { }
+        {
+            Mesh = mesh;
+
+            Orientation = Matrix4x4.Identity;
+            Position = new Vector3f(0);
+            Scale = 1;
+
+            Transform = Matrix4x4.Identity;
+        }
     }
 }

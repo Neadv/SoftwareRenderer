@@ -75,6 +75,12 @@
             return new Vector4f(result[0], result[1], result[2], result[3]);
         }
 
+        public Vector3f Multiple(Vector3f vec3)
+        {
+            var tmp = Multiple(new Vector4f(vec3, 1));
+            return new Vector3f(tmp.X, tmp.Y, tmp.Z);
+        }
+
         public Matrix4x4 Multiple(Matrix4x4 matrix)
         {
             var result = new Matrix4x4(0);
@@ -109,6 +115,7 @@
         }
 
         public static Vector4f operator *(Matrix4x4 matrix4X4, Vector4f vec4) => matrix4X4.Multiple(vec4);
+        public static Vector3f operator *(Matrix4x4 matrix4X4, Vector3f vec3) => matrix4X4.Multiple(vec3);
         public static Matrix4x4 operator *(Matrix4x4 matA, Matrix4x4 matB) => matA.Multiple(matB);
     }
 }

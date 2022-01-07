@@ -11,14 +11,14 @@ namespace SoftwareRenderer.Rasterizer
         public Cube(float size, Color color1, Color color2, Color color3, Color color4, Color color5, Color color6)
         {
             float halfSize = size / 2;
-            Vertices.Add(new Common.Vector3f(halfSize, halfSize, halfSize));
-            Vertices.Add(new Common.Vector3f(-halfSize, halfSize, halfSize));
-            Vertices.Add(new Common.Vector3f(-halfSize, -halfSize, halfSize));
-            Vertices.Add(new Common.Vector3f(halfSize, -halfSize, halfSize));
-            Vertices.Add(new Common.Vector3f(halfSize, halfSize, -halfSize));
-            Vertices.Add(new Common.Vector3f(-halfSize, halfSize, -halfSize));
-            Vertices.Add(new Common.Vector3f(-halfSize, -halfSize, -halfSize));
-            Vertices.Add(new Common.Vector3f(halfSize, -halfSize, -halfSize));
+            Vertices.Add(new Vector3f(halfSize, halfSize, halfSize));
+            Vertices.Add(new Vector3f(-halfSize, halfSize, halfSize));
+            Vertices.Add(new Vector3f(-halfSize, -halfSize, halfSize));
+            Vertices.Add(new Vector3f(halfSize, -halfSize, halfSize));
+            Vertices.Add(new Vector3f(halfSize, halfSize, -halfSize));
+            Vertices.Add(new Vector3f(-halfSize, halfSize, -halfSize));
+            Vertices.Add(new Vector3f(-halfSize, -halfSize, -halfSize));
+            Vertices.Add(new Vector3f(halfSize, -halfSize, -halfSize));
 
             Triangles.Add(new Triangle(0, 1, 2, color1));
             Triangles.Add(new Triangle(0, 2, 3, color1));
@@ -32,6 +32,8 @@ namespace SoftwareRenderer.Rasterizer
             Triangles.Add(new Triangle(4, 1, 0, color5));
             Triangles.Add(new Triangle(2, 6, 7, color6));
             Triangles.Add(new Triangle(2, 7, 3, color6));
+
+            CalculateBoundingSphere();
         }
     }
 }

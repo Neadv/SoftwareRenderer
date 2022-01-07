@@ -22,6 +22,14 @@ namespace SoftwareRenderer.Common
             X = Y = Z = W = value;
         }
 
+        public Vector4f(Vector3f v3, float w)
+        {
+            X = v3.X;
+            Y = v3.Y;
+            Z = v3.Z;
+            W = w;
+        }
+
         public Vector4f Multiply(float value)
         {
             return new Vector4f(value * this.X, value * this.Y, value * this.Z, value * this.W);

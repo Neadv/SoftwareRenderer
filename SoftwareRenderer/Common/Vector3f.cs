@@ -20,6 +20,11 @@ namespace SoftwareRenderer.Common
             X = Y = Z = value;
         }
 
+        public override string ToString()
+        {
+            return $"X: {X}; Y: {Y}; Z: {Z}; |V|={Length()}";
+        }
+
         public Vector3f Multiply(float value)
         {
             return new Vector3f(value * this.X, value * this.Y, value * this.Z);

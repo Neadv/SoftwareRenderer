@@ -1,4 +1,8 @@
-﻿namespace SoftwareRenderer.Utils
+﻿using SoftwareRenderer.Common;
+using System;
+using System.Collections.Generic;
+
+namespace SoftwareRenderer.Utils
 {
     public static class MathHelper
     {
@@ -17,6 +21,27 @@
                 d += a;
             }
             return values;
+        }
+
+        internal static Sphere CalculateBoundingSphere(List<Vector3f> vertices)
+        {
+            Vector3f center = new Vector3f(0);
+            foreach (var vertex in vertices)
+            {
+                center += vertex;
+            }
+            center /= vertices.Count;
+
+            float radius = float.MinValue;
+            foreach (var vertex in vertices)
+            {
+                float length = (vertex - center).Length();
+                if (length > radius)
+                {
+                    radius = length;
+                }
+            }
+            return new Sphere(center, radius);
         }
 
         public static void Swap<T>(ref T obj1, ref T obj2)

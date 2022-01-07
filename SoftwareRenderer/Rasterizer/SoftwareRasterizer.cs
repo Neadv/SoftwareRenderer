@@ -24,12 +24,15 @@ namespace SoftwareRenderer.Rasterizer
             _camera.Position = new Vector3f(-3, 1, 2);
             _camera.Orientation = TransformHelper.MakeOYRotationMatrix(-30);
 
+
             Scene scene = new Scene();
 
             Mesh cube = new Cube(2, Color.Red, Color.Green, Color.Blue, Color.Red, Color.Green, Color.Blue);
 
             scene.Instances.Add(new Instance(cube, new Vector3f(-1.5f, 0, 7), 0.75f));
             scene.Instances.Add(new Instance(cube, new Vector3f(1.25f, 2.5f, 7.5f), TransformHelper.MakeOYRotationMatrix(195), 1));
+            scene.Instances.Add(new Instance(cube, new Vector3f(10, 0, 10)));
+            scene.Instances.Add(new Instance(cube, new Vector3f(-10, 0, -10), TransformHelper.MakeOYRotationMatrix(195), 1));
 
             RenderScene(scene);
         }
@@ -40,21 +43,73 @@ namespace SoftwareRenderer.Rasterizer
 
             foreach (var instance in scene.Instances)
             {
-                var transform = cameraMatrix * instance.Transform;
-                RenderModel(instance, transform);
+                var transformed = TransformAndClip(instance.Mesh, cameraMatrix * instance.Transform);
+                if (transformed != null)
+                {
+                    RenderModel(transformed);
+                }
             }
         }
 
-        private void RenderModel(Instance instance, Matrix4x4 transform)
+        private Mesh TransformAndClip(Mesh mesh, Matrix4x4 transform)
         {
-            var mesh = instance.Mesh;
+            Vector3f center = transform * mesh.BoundingSphere.Center;
+            float radius2 = mesh.BoundingSphere.R * mesh.BoundingSphere.R;
+            foreach (var clippedPlane in _camera.ClippingPlanes)
+            {
+                float distance2 = clippedPlane.Normal.Dot(center) + clippedPlane.Distance;
+                if (distance2 < -radius2)
+                {
+                    return null;
+                }
+            }
+
+            var transformedMesh = Mesh.Copy(mesh);
+            transformedMesh.Transform(transform);
+            foreach (var plane in _camera.ClippingPlanes)
+            {
+                var newTriangles = new List<Triangle>(mesh.Triangles.Count);
+                foreach (var triangle in transformedMesh.Triangles)
+                {
+                    ClipTriangle(triangle, plane, transformedMesh.Vertices, newTriangles);
+                }
+                transformedMesh.Triangles = newTriangles;
+            }
+
+            return transformedMesh;
+        }
+
+        private void ClipTriangle(Triangle triangle, Plane plane, List<Vector3f> vertices, IList<Triangle> triangles)
+        {
+            Vector3f v0 = vertices[triangle.V0];
+            Vector3f v1 = vertices[triangle.V1];
+            Vector3f v2 = vertices[triangle.V2];
+
+            int inCount = 0;
+            inCount += plane.Normal * v0 + plane.Distance > 0 ? 1 : 0;
+            inCount += plane.Normal * v1 + plane.Distance > 0 ? 1 : 0;
+            inCount += plane.Normal * v2 + plane.Distance > 0 ? 1 : 0;
+
+            if (inCount == 3)
+            {
+                triangles.Add(triangle);
+            }
+            else if (inCount == 1)
+            {
+                // The triangle has one vertex in. Output is one clipped triangle.
+            }
+            else if (inCount == 2)
+            {
+                // The triangle has two vertices in. Output is two clipped triangles.
+            }
+        }
+
+        private void RenderModel(Mesh mesh)
+        {
             var projected = new Vector2i[mesh.Vertices.Count];
             for (int i = 0; i < mesh.Vertices.Count; i++)
             {
-                var vertex = mesh.Vertices[i];
-                var vert4 = new Vector4f(vertex.X, vertex.Y, vertex.Z, 1);
-                var transformed = transform * vert4;
-                projected[i] = PointToCanvas(new Vector3f(transformed.X, transformed.Y, transformed.Z));
+                projected[i] = PointToCanvas(new Vector3f(mesh.Vertices[i].X, mesh.Vertices[i].Y, mesh.Vertices[i].Z));
             }
             foreach (var triangle in mesh.Triangles)
             {
@@ -64,11 +119,13 @@ namespace SoftwareRenderer.Rasterizer
 
         private void RenderTriangle(Triangle triangle, Vector2i[] projected)
         {
-            DrawWireframeTriangle(projected[triangle.V1],
+            DrawWireframeTriangle(projected[triangle.V0],
+                                  projected[triangle.V1],
                                   projected[triangle.V2],
-                                  projected[triangle.V3],
                                   triangle.Color);
         }
+
+
 
         private void DrawLine(Vector2i p0, Vector2i p1, Color color)
         {
