@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using SoftwareRenderer.Common;
+using SoftwareRenderer.Utils;
 
 namespace SoftwareRenderer.Rasterizer
 {
@@ -11,6 +12,8 @@ namespace SoftwareRenderer.Rasterizer
         private ZBuffer _zBuffer;
 
         private TriangleRasterizer _triangleRasterizer;
+
+        private int _trianglesRendered = 0;
 
         public void Initialization(ICanvas canvas)
         {
@@ -37,6 +40,7 @@ namespace SoftwareRenderer.Rasterizer
             scene.Instances.Add(new Instance(cube, new Vector3f(-10, 0, -10), TransformHelper.MakeOYRotationMatrix(195), 1));
 
             RenderScene(scene);
+            System.Console.WriteLine($"Triangles Rendered: {_trianglesRendered}");
         }
 
         public void RenderScene(Scene scene)
@@ -81,6 +85,47 @@ namespace SoftwareRenderer.Rasterizer
             return transformedMesh;
         }
 
+        private void RenderModel(Mesh mesh)
+        {
+            foreach (var triangle in mesh.Triangles)
+            {
+                RenderTriangle(triangle, mesh.Vertices);
+            }
+        }
+
+        private void RenderTriangle(Triangle triangle, IList<Vector3f> vertices)
+        {
+            var v0 = vertices[triangle.V0];
+            var v1 = vertices[triangle.V1];
+            var v2 = vertices[triangle.V2];
+
+            Vector3f normal = MathHelper.ComputeTriangleNormal(v0, v1, v2);
+            Vector3f center =  -(v0 + v1 + v2) / 3.0f;
+            if (center * normal < 0)
+            {
+                return;
+            }
+            var p0 = PointToCanvas(v0);
+            var p1 = PointToCanvas(v1);
+            var p2 = PointToCanvas(v2);
+
+            _triangleRasterizer.DrawFilledTriangle
+            (
+                p0,
+                p1,
+                p2,
+                new float[3]
+                {
+                    v0.Z,
+                    v1.Z,
+                    v2.Z
+                },
+                triangle.Color
+            );
+            _trianglesRendered++;
+        }
+
+
         private void ClipTriangle(Triangle triangle, Plane plane, List<Vector3f> vertices, IList<Triangle> triangles)
         {
             Vector3f v0 = vertices[triangle.V0];
@@ -104,38 +149,6 @@ namespace SoftwareRenderer.Rasterizer
             {
                 // The triangle has two vertices in. Output is two clipped triangles.
             }
-        }
-
-        private void RenderModel(Mesh mesh)
-        {
-            var projected = new Vector2i[mesh.Vertices.Count];
-            var zPositions = new float[mesh.Vertices.Count];
-            for (int i = 0; i < mesh.Vertices.Count; i++)
-            {
-                projected[i] = PointToCanvas(mesh.Vertices[i]);
-                zPositions[i] = mesh.Vertices[i].Z;
-            }
-            foreach (var triangle in mesh.Triangles)
-            {
-                RenderTriangle(triangle, projected, zPositions);
-            }
-        }
-
-        private void RenderTriangle(Triangle triangle, Vector2i[] projected, float[] zPositions)
-        {
-            _triangleRasterizer.DrawFilledTriangle
-            (
-                projected[triangle.V0],
-                projected[triangle.V1],
-                projected[triangle.V2],
-                new float[3]
-                {
-                    zPositions[triangle.V0],
-                    zPositions[triangle.V1],
-                    zPositions[triangle.V2]
-                },
-                triangle.Color
-            );
         }
 
         private Vector2i PointToCanvas(Vector3f point)

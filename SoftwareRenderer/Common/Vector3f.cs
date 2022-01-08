@@ -50,6 +50,16 @@ namespace SoftwareRenderer.Common
             return this.X * v.X + this.Y * v.Y + this.Z * v.Z;
         }
 
+        public Vector3f Cross(Vector3f v)
+        {
+            return new Vector3f
+            (
+                x: this.Y * v.Z - this.Z * v.Y,
+                y: this.Z * v.X - this.X * v.Z,
+                z: this.X * v.Y - this.Y * v.X
+            );
+        }
+
         public float Length()
         {
             return MathF.Sqrt(this.X * this.X + this.Y * this.Y + this.Z * this.Z);

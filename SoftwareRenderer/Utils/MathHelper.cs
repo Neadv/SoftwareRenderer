@@ -50,5 +50,12 @@ namespace SoftwareRenderer.Utils
             obj1 = obj2;
             obj2 = tmp;
         }
+
+        public static Vector3f ComputeTriangleNormal(Vector3f v0, Vector3f v1, Vector3f v2)
+        {
+            var v0v1 = v1 - v0;
+            var v0v2 = v2 - v0;
+            return v0v1.Cross(v0v2);
+        }
     }
 }
