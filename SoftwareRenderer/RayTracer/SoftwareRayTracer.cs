@@ -9,9 +9,11 @@ namespace SoftwareRenderer.RayTracer
         private Vector3f _cameraPos;
         private Viewport _viewport;
         private Scene _scene;
+        private ICanvas _canvas;
 
-        public void Initialization()
+        public void Initialization(ICanvas canvas)
         {
+            _canvas = canvas;
             _cameraPos = new Vector3f(0);
             _viewport = new Viewport(1, 1, 1);
 
@@ -57,20 +59,20 @@ namespace SoftwareRenderer.RayTracer
             };
         }
 
-        public void Render(ICanvas canvas)
+        public void Render()
         {
-            for (int y = -canvas.Height / 2; y <= canvas.Height / 2; y++)
+            for (int y = -_canvas.Height / 2; y <= _canvas.Height / 2; y++)
             {
-                for (int x = -canvas.Width / 2; x <= canvas.Width / 2; x++)
+                for (int x = -_canvas.Width / 2; x <= _canvas.Width / 2; x++)
                 {
-                    float posX = x * _viewport.Width / canvas.Width;
-                    float posY = y * _viewport.Height / canvas.Height;
+                    float posX = x * _viewport.Width / _canvas.Width;
+                    float posY = y * _viewport.Height / _canvas.Height;
                     float posZ = _viewport.Distance;
 
                     var dir = (new Vector3f(posX, posY, posZ) - _cameraPos).Normalize();
 
                     var pixel = TraceRay(_cameraPos, dir, 3, 0.05f, float.MaxValue);
-                    canvas.Set(x, y, pixel);
+                    _canvas.Set(x, y, pixel);
                 }
             }
         }

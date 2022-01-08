@@ -18,11 +18,11 @@ namespace SoftwareRenderer
             canvas.Clear(Color.White);
             
             IRenderer renderer = new SoftwareRasterizer();
-            renderer.Initialization();
+            renderer.Initialization(canvas);
 
             var sw = Stopwatch.StartNew();
 
-            renderer.Render(canvas);
+            renderer.Render();
 
             sw.Stop();
             Console.WriteLine($"Render: {sw.ElapsedMilliseconds}ms");
