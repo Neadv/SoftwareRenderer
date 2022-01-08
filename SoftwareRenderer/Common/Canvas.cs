@@ -17,11 +17,11 @@ namespace SoftwareRenderer.Common
 
         public Color this[int x, int y]
         {
-            get => GetColor(x, y);
-            set => SetColor(x, y, value);
+            get => Get(x, y);
+            set => Set(x, y, value);
         }
 
-        public void SetColor(int x, int y, Color color)
+        public void Set(int x, int y, Color color)
         {
             x = Width / 2 + x;
             y = Height / 2 - y;
@@ -38,7 +38,7 @@ namespace SoftwareRenderer.Common
             Bytes[index + 3] = color.A;
         }
 
-        public Color GetColor(int x, int y)
+        public Color Get(int x, int y)
         {
             x = Width / 2 + x;
             y = Height / 2 - y;
@@ -57,13 +57,13 @@ namespace SoftwareRenderer.Common
             {
                 for (int x = -Width / 2; x <= Width / 2; x++)
                 {
-                    SetColor(x, y, color);
+                    Set(x, y, color);
                 }
             }
         }
 
-        public void SetColor(Vector2i point, Color color) => SetColor(point.X, point.Y, color);
+        public void Set(Vector2i point, Color color) => Set(point.X, point.Y, color);
 
-        public Color GetColor(Vector2i point) => GetColor(point.X, point.Y);
+        public Color Get(Vector2i point) => Get(point.X, point.Y);
     }
 }

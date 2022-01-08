@@ -29,7 +29,7 @@ namespace SoftwareRenderer
             
             sw.Restart();
 
-            CanvasSaver saver = new CanvasSaver();
+            CanvasSaver saver = new CanvasSaver("result.png");
             saver.Save(canvas);
 
             Console.WriteLine($"Save: {sw.ElapsedMilliseconds}ms");

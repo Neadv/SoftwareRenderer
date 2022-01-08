@@ -70,7 +70,7 @@ namespace SoftwareRenderer.RayTracer
                     var dir = (new Vector3f(posX, posY, posZ) - _cameraPos).Normalize();
 
                     var pixel = TraceRay(_cameraPos, dir, 3, 0.05f, float.MaxValue);
-                    canvas.SetColor(x, y, pixel);
+                    canvas.Set(x, y, pixel);
                 }
             }
         }
