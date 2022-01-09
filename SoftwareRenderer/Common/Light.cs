@@ -1,6 +1,4 @@
-using SoftwareRenderer.Common;
-
-namespace SoftwareRenderer.RayTracer
+namespace SoftwareRenderer.Common
 {
     public enum LightType
     {

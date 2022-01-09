@@ -55,7 +55,7 @@ namespace SoftwareRenderer.Utils
         {
             var v0v1 = v1 - v0;
             var v0v2 = v2 - v0;
-            return v0v1.Cross(v0v2);
+            return v0v1.Cross(v0v2).Normalize();
         }
     }
 }

@@ -19,25 +19,32 @@ namespace SoftwareRenderer.Rasterizer
         {
             _canvas = canvas;
             _zBuffer = new ZBuffer(_canvas.Width, _canvas.Height);
-            _triangleRasterizer = new TriangleRasterizer(_canvas, _zBuffer);
 
             _camera = new Camera();
             _viewport = new Viewport(1, 1, 1);
 
             _camera.Position = new Vector3f(-3, 1, 2);
             _camera.Orientation = TransformHelper.MakeOYRotationMatrix(-30);
+
+            _triangleRasterizer = new TriangleRasterizer(_canvas, _zBuffer, _camera, _viewport);
         }
 
         public void Render()
         {
             Scene scene = new Scene();
 
-            Mesh cube = new Cube(2, Color.Red, Color.Green, Color.Blue, Color.Red, Color.Green, Color.Blue);
+            Mesh cube = new CubeMesh(2, Color.Red, Color.Green, Color.Blue, Color.Red, Color.Green, Color.Blue);
+            Mesh sphere = new SphereMesh(1, Color.Green);
 
             scene.Instances.Add(new Instance(cube, new Vector3f(-1.5f, 0, 7), 0.75f));
             scene.Instances.Add(new Instance(cube, new Vector3f(1.25f, 2.5f, 7.5f), TransformHelper.MakeOYRotationMatrix(195), 1));
             scene.Instances.Add(new Instance(cube, new Vector3f(10, 0, 10)));
             scene.Instances.Add(new Instance(cube, new Vector3f(-10, 0, -10), TransformHelper.MakeOYRotationMatrix(195), 1));
+            scene.Instances.Add(new Instance(sphere, new Vector3f(1.75f, -0.5f, 7), Matrix4x4.Identity, 1.5f));
+
+            scene.Lights.Add(Light.CreateAmbient(0.2f));
+            scene.Lights.Add(Light.CreateDirectional(0.2f, new Vector3f(-1, 0, 1).Normalize()));
+            scene.Lights.Add(Light.CreatePoint(0.6f, new Vector3f(-3, 3, -10)));
 
             RenderScene(scene);
             System.Console.WriteLine($"Triangles Rendered: {_trianglesRendered}");
@@ -49,59 +56,31 @@ namespace SoftwareRenderer.Rasterizer
 
             foreach (var instance in scene.Instances)
             {
-                var transformed = TransformAndClip(instance.Mesh, cameraMatrix * instance.Transform);
+                var transformed = MeshTransformation.TransformAndClip(instance.Mesh, cameraMatrix * instance.Transform, _camera.ClippingPlanes);
                 if (transformed != null)
                 {
-                    RenderModel(transformed);
+                    RenderModel(transformed, scene.Lights, instance.Orientation);
                 }
             }
         }
 
-        private Mesh TransformAndClip(Mesh mesh, Matrix4x4 transform)
-        {
-            Vector3f center = transform * mesh.BoundingSphere.Center;
-            float radius2 = mesh.BoundingSphere.R * mesh.BoundingSphere.R;
-            foreach (var clippedPlane in _camera.ClippingPlanes)
-            {
-                float distance2 = clippedPlane.Normal.Dot(center) + clippedPlane.Distance;
-                if (distance2 < -radius2)
-                {
-                    return null;
-                }
-            }
-
-            var transformedMesh = Mesh.Copy(mesh);
-            transformedMesh.Transform(transform);
-            foreach (var plane in _camera.ClippingPlanes)
-            {
-                var newTriangles = new List<Triangle>(mesh.Triangles.Count);
-                foreach (var triangle in transformedMesh.Triangles)
-                {
-                    ClipTriangle(triangle, plane, transformedMesh.Vertices, newTriangles);
-                }
-                transformedMesh.Triangles = newTriangles;
-            }
-
-            return transformedMesh;
-        }
-
-        private void RenderModel(Mesh mesh)
+        private void RenderModel(Mesh mesh, IEnumerable<Light> lights, Matrix4x4 orientation)
         {
             foreach (var triangle in mesh.Triangles)
             {
-                RenderTriangle(triangle, mesh.Vertices);
+                RenderTriangle(triangle, mesh.Vertices, lights, orientation);
             }
         }
 
-        private void RenderTriangle(Triangle triangle, IList<Vector3f> vertices)
+        private void RenderTriangle(Triangle triangle, IList<Vector3f> vertices, IEnumerable<Light> lights, Matrix4x4 orientation)
         {
             var v0 = vertices[triangle.V0];
             var v1 = vertices[triangle.V1];
             var v2 = vertices[triangle.V2];
 
             Vector3f normal = MathHelper.ComputeTriangleNormal(v0, v1, v2);
-            Vector3f center =  -(v0 + v1 + v2) / 3.0f;
-            if (center * normal < 0)
+            Vector3f center = (v0 + v1 + v2) / 3.0f;
+            if (-center * normal < 0)
             {
                 return;
             }
@@ -109,7 +88,7 @@ namespace SoftwareRenderer.Rasterizer
             var p1 = PointToCanvas(v1);
             var p2 = PointToCanvas(v2);
 
-            _triangleRasterizer.DrawFilledTriangle
+            _triangleRasterizer.DrawShadedTriangle
             (
                 p0,
                 p1,
@@ -120,35 +99,17 @@ namespace SoftwareRenderer.Rasterizer
                     v1.Z,
                     v2.Z
                 },
+                new Vector3f[3]
+                {
+                    triangle.N0,
+                    triangle.N1,
+                    triangle.N2
+                },
+                lights,
+                orientation,
                 triangle.Color
             );
             _trianglesRendered++;
-        }
-
-
-        private void ClipTriangle(Triangle triangle, Plane plane, List<Vector3f> vertices, IList<Triangle> triangles)
-        {
-            Vector3f v0 = vertices[triangle.V0];
-            Vector3f v1 = vertices[triangle.V1];
-            Vector3f v2 = vertices[triangle.V2];
-
-            int inCount = 0;
-            inCount += plane.Normal * v0 + plane.Distance > 0 ? 1 : 0;
-            inCount += plane.Normal * v1 + plane.Distance > 0 ? 1 : 0;
-            inCount += plane.Normal * v2 + plane.Distance > 0 ? 1 : 0;
-
-            if (inCount == 3)
-            {
-                triangles.Add(triangle);
-            }
-            else if (inCount == 1)
-            {
-                // The triangle has one vertex in. Output is one clipped triangle.
-            }
-            else if (inCount == 2)
-            {
-                // The triangle has two vertices in. Output is two clipped triangles.
-            }
         }
 
         private Vector2i PointToCanvas(Vector3f point)

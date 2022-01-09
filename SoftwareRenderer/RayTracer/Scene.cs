@@ -1,3 +1,4 @@
+using SoftwareRenderer.Common;
 using System.Collections.Generic;
 
 namespace SoftwareRenderer.RayTracer
