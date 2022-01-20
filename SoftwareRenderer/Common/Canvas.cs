@@ -46,7 +46,7 @@ namespace SoftwareRenderer.Common
             if (x < 0 || x >= Width || y < 0 || y >= Height)
                 return Color.Black;
 
-            int index = y * Width + x;
+            int index = 4 * (y * Width + x);
 
             return new Color(Bytes[index], Bytes[index + 1], Bytes[index + 2], Bytes[index + 3]);
         }

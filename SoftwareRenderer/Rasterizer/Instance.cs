@@ -6,6 +6,7 @@ namespace SoftwareRenderer.Rasterizer
     {
         public Mesh Mesh { get; }
         public Matrix4x4 Transform { get; }
+        public Image Texture { get; set; }
 
         public float Scale { get; }
         public Matrix4x4 Orientation { get; }

@@ -22,7 +22,7 @@ namespace SoftwareRenderer.Utils
         public void Save(ICanvas canvas)
         {
             byte[] rgbaBytes = canvas.Bytes;
-            using (var image = Image.LoadPixelData<Rgba32>(rgbaBytes, canvas.Width, canvas.Height))
+            using (var image = SixLabors.ImageSharp.Image.LoadPixelData<Rgba32>(rgbaBytes, canvas.Width, canvas.Height))
             {
                 image.SaveAsPng(Path.Combine(Directory.GetCurrentDirectory(), _resultPath));
             }

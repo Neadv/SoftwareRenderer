@@ -33,13 +33,16 @@ namespace SoftwareRenderer.Rasterizer
         {
             Scene scene = new Scene();
 
-            Mesh cube = new CubeMesh(2, Color.Red, Color.Green, Color.Blue, Color.Red, Color.Green, Color.Blue);
+            Mesh cube1 = new CubeMesh(2, Color.White);
+            Mesh cube2 = new CubeMesh(1.5f, Color.Red, Color.Green, Color.Blue, Color.Red, Color.Green, Color.Blue);
             Mesh sphere = new SphereMesh(1, Color.Green);
 
-            scene.Instances.Add(new Instance(cube, new Vector3f(-1.5f, 0, 7), 0.75f));
-            scene.Instances.Add(new Instance(cube, new Vector3f(1.25f, 2.5f, 7.5f), TransformHelper.MakeOYRotationMatrix(195), 1));
-            scene.Instances.Add(new Instance(cube, new Vector3f(10, 0, 10)));
-            scene.Instances.Add(new Instance(cube, new Vector3f(-10, 0, -10), TransformHelper.MakeOYRotationMatrix(195), 1));
+            Image texture = ImageHelper.LoadImageFromFile("Textures/crate-texture.jpg");
+
+            scene.Instances.Add(new Instance(cube1, new Vector3f(-1.5f, 0, 7), 0.75f) { Texture = texture });
+            scene.Instances.Add(new Instance(cube1, new Vector3f(1.25f, 2.5f, 7.5f), TransformHelper.MakeOYRotationMatrix(195), 1) { Texture = texture });
+            scene.Instances.Add(new Instance(cube2, new Vector3f(10, 0, 10)));
+            scene.Instances.Add(new Instance(cube2, new Vector3f(-10, 0, -10), TransformHelper.MakeOYRotationMatrix(195), 1));
             scene.Instances.Add(new Instance(sphere, new Vector3f(1.75f, -0.5f, 7), Matrix4x4.Identity, 1.5f));
 
             scene.Lights.Add(Light.CreateAmbient(0.2f));
@@ -59,20 +62,20 @@ namespace SoftwareRenderer.Rasterizer
                 var transformed = MeshTransformation.TransformAndClip(instance.Mesh, cameraMatrix * instance.Transform, _camera.ClippingPlanes);
                 if (transformed != null)
                 {
-                    RenderModel(transformed, scene.Lights, instance.Orientation);
+                    RenderModel(transformed, scene.Lights, instance.Orientation, instance.Texture);
                 }
             }
         }
 
-        private void RenderModel(Mesh mesh, IEnumerable<Light> lights, Matrix4x4 orientation)
+        private void RenderModel(Mesh mesh, IEnumerable<Light> lights, Matrix4x4 orientation, Image texture)
         {
             foreach (var triangle in mesh.Triangles)
             {
-                RenderTriangle(triangle, mesh.Vertices, lights, orientation);
+                RenderTriangle(triangle, mesh.Vertices, lights, orientation, texture);
             }
         }
 
-        private void RenderTriangle(Triangle triangle, IList<Vector3f> vertices, IEnumerable<Light> lights, Matrix4x4 orientation)
+        private void RenderTriangle(Triangle triangle, IList<Vector3f> vertices, IEnumerable<Light> lights, Matrix4x4 orientation, Image texture)
         {
             var v0 = vertices[triangle.V0];
             var v1 = vertices[triangle.V1];
@@ -88,27 +91,38 @@ namespace SoftwareRenderer.Rasterizer
             var p1 = PointToCanvas(v1);
             var p2 = PointToCanvas(v2);
 
-            _triangleRasterizer.DrawShadedTriangle
-            (
-                p0,
-                p1,
-                p2,
-                new float[3]
-                {
-                    v0.Z,
-                    v1.Z,
-                    v2.Z
-                },
-                new Vector3f[3]
-                {
-                    triangle.N0,
-                    triangle.N1,
-                    triangle.N2
-                },
-                lights,
-                orientation,
-                triangle.Color
-            );
+            float[] zPositions = new float[3] { v0.Z, v1.Z, v2.Z };
+            Vector3f[] normals = new Vector3f[3] { triangle.N0, triangle.N1, triangle.N2 };
+            if (texture == null)
+            {
+                _triangleRasterizer.DrawShadedTriangle
+                (
+                    p0,
+                    p1,
+                    p2,
+                    zPositions,
+                    normals,
+                    lights,
+                    orientation,
+                    triangle.Color
+                );
+            }
+            else
+            {
+                Vector2f[] uvs = new Vector2f[3] { triangle.UV0, triangle.UV1, triangle.UV2 };
+                _triangleRasterizer.DrawTexturedTriangle
+                (
+                    p0,
+                    p1,
+                    p2,
+                    zPositions,
+                    uvs,
+                    texture,
+                    normals,
+                    lights,
+                    orientation
+                );
+            }
             _trianglesRendered++;
         }
 
