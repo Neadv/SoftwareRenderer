@@ -1,10 +1,10 @@
 ﻿using SoftwareRenderer.Common;
 
-namespace SoftwareRenderer.Rasterizer
+namespace SoftwareRenderer.Rasterizer.Models
 {
     public class CubeMesh : Mesh
     {
-        public CubeMesh(float size, Color color) 
+        public CubeMesh(float size, Color color)
             : this(size, color, color, color, color, color, color)
         { }
 

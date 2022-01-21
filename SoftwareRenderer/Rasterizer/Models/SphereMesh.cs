@@ -1,9 +1,9 @@
 ﻿using SoftwareRenderer.Common;
 using System;
 
-namespace SoftwareRenderer.Rasterizer
+namespace SoftwareRenderer.Rasterizer.Models
 {
-    public class SphereMesh: Mesh
+    public class SphereMesh : Mesh
     {
         public SphereMesh(float radius, Color color, int divs = 15)
         {
@@ -12,7 +12,7 @@ namespace SoftwareRenderer.Rasterizer
             // Generate vertices and normals.
             for (int d = 0; d < divs + 1; d++)
             {
-                float y = (2.0f / divs) * (d - divs / 2.0f);
+                float y = 2.0f / divs * (d - divs / 2.0f);
                 float dRadius = MathF.Sqrt(radius - y * y);
                 for (var i = 0; i < divs; i++)
                 {

@@ -1,6 +1,6 @@
 ﻿using SoftwareRenderer.Common;
 
-namespace SoftwareRenderer.Rasterizer
+namespace SoftwareRenderer.Rasterizer.Models
 {
     public class Instance
     {

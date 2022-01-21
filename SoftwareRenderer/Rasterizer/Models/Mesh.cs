@@ -2,14 +2,14 @@
 using SoftwareRenderer.Utils;
 using System.Collections.Generic;
 
-namespace SoftwareRenderer.Rasterizer
+namespace SoftwareRenderer.Rasterizer.Models
 {
     public class Mesh
     {
         public List<Vector3f> Vertices { get; set; }
         public List<Triangle> Triangles { get; set; }
 
-        public Sphere BoundingSphere { get; private set;  }
+        public Sphere BoundingSphere { get; private set; }
 
         public Mesh(List<Vector3f> vertices, List<Triangle> triangles)
         {
@@ -30,7 +30,7 @@ namespace SoftwareRenderer.Rasterizer
 
         protected void CalculateBoundingSphere()
         {
-            BoundingSphere = MathHelper.CalculateBoundingSphere(this.Vertices);
+            BoundingSphere = MathHelper.CalculateBoundingSphere(Vertices);
         }
 
         public Mesh()

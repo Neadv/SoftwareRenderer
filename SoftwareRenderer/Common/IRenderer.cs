@@ -1,8 +1,12 @@
+using System;
+
 namespace SoftwareRenderer.Common
 {
     public interface IRenderer
     {
-        void Initialization(ICanvas canvas);
+        public event Action RenderStarted;
+        public event Action RenderFinished;
+
         void Render();
     }
 }

@@ -1,65 +1,54 @@
+using System;
 using System.Collections.Generic;
 using SoftwareRenderer.Common;
+using SoftwareRenderer.Rasterizer.Models;
 using SoftwareRenderer.Utils;
 
 namespace SoftwareRenderer.Rasterizer
 {
     public class SoftwareRasterizer : IRenderer
     {
+        public event Action RenderStarted;
+        public event Action RenderFinished;
+
+        public Scene Scene { get; private set; }
+
         private ICanvas _canvas;
-        private Camera _camera;
-        private Viewport _viewport;
         private ZBuffer _zBuffer;
 
         private TriangleRasterizer _triangleRasterizer;
 
-        private int _trianglesRendered = 0;
+        public int TrianglesRendered { get; private set; }
 
-        public void Initialization(ICanvas canvas)
+        public void Setup(Scene scene, ICanvas canvas)
         {
-            _canvas = canvas;
+            Scene = scene ?? throw new ArgumentNullException(nameof(scene));
+            _canvas = canvas ?? throw new ArgumentNullException(nameof(canvas));
+
             _zBuffer = new ZBuffer(_canvas.Width, _canvas.Height);
-
-            _camera = new Camera();
-            _viewport = new Viewport(1, 1, 1);
-
-            _camera.Position = new Vector3f(-3, 1, 2);
-            _camera.Orientation = TransformHelper.MakeOYRotationMatrix(-30);
-
-            _triangleRasterizer = new TriangleRasterizer(_canvas, _zBuffer, _camera, _viewport);
+            _triangleRasterizer = new TriangleRasterizer(_canvas, _zBuffer, Scene.Camera, Scene.Viewport);
         }
 
         public void Render()
         {
-            Scene scene = new Scene();
+            if (Scene == null)
+            {
+                throw new InvalidOperationException("Renderer must be initialized. Call method setup before render");
+            }
 
-            Mesh cube1 = new CubeMesh(2, Color.White);
-            Mesh cube2 = new CubeMesh(1.5f, Color.Red, Color.Green, Color.Blue, Color.Red, Color.Green, Color.Blue);
-            Mesh sphere = new SphereMesh(1, Color.Green);
-
-            Image texture = ImageHelper.LoadImageFromFile("Textures/crate-texture.jpg");
-
-            scene.Instances.Add(new Instance(cube1, new Vector3f(-1.5f, 0, 7), 0.75f) { Texture = texture });
-            scene.Instances.Add(new Instance(cube1, new Vector3f(1.25f, 2.5f, 7.5f), TransformHelper.MakeOYRotationMatrix(195), 1) { Texture = texture });
-            scene.Instances.Add(new Instance(cube2, new Vector3f(10, 0, 10)));
-            scene.Instances.Add(new Instance(cube2, new Vector3f(-10, 0, -10), TransformHelper.MakeOYRotationMatrix(195), 1));
-            scene.Instances.Add(new Instance(sphere, new Vector3f(1.75f, -0.5f, 7), Matrix4x4.Identity, 1.5f));
-
-            scene.Lights.Add(Light.CreateAmbient(0.2f));
-            scene.Lights.Add(Light.CreateDirectional(0.2f, new Vector3f(-1, 0, 1).Normalize()));
-            scene.Lights.Add(Light.CreatePoint(0.6f, new Vector3f(-3, 3, -10)));
-
-            RenderScene(scene);
-            System.Console.WriteLine($"Triangles Rendered: {_trianglesRendered}");
+            TrianglesRendered = 0;
+            RenderStarted?.Invoke();
+            RenderScene(Scene);
+            RenderFinished?.Invoke();
         }
 
-        public void RenderScene(Scene scene)
+        private void RenderScene(Scene scene)
         {
-            var cameraMatrix = _camera.Orientation.Transpose() * TransformHelper.MakeTranslationMatrix(-_camera.Position);
+            var cameraMatrix = Scene.Camera.Orientation.Transpose() * TransformHelper.MakeTranslationMatrix(-Scene.Camera.Position);
 
             foreach (var instance in scene.Instances)
             {
-                var transformed = MeshTransformation.TransformAndClip(instance.Mesh, cameraMatrix * instance.Transform, _camera.ClippingPlanes);
+                var transformed = MeshTransformation.TransformAndClip(instance.Mesh, cameraMatrix * instance.Transform, Scene.Camera.ClippingPlanes);
                 if (transformed != null)
                 {
                     RenderModel(transformed, scene.Lights, instance.Orientation, instance.Texture);
@@ -123,22 +112,22 @@ namespace SoftwareRenderer.Rasterizer
                     orientation
                 );
             }
-            _trianglesRendered++;
+            TrianglesRendered++;
         }
 
         private Vector2i PointToCanvas(Vector3f point)
         {
             var viewportPoint = PointToViewport(point);
-            int x = (int)((viewportPoint.X * _canvas.Width) / _viewport.Width);
-            int y = (int)((viewportPoint.Y * _canvas.Height) / _viewport.Height);
+            int x = (int)((viewportPoint.X * _canvas.Width) / Scene.Viewport.Width);
+            int y = (int)((viewportPoint.Y * _canvas.Height) / Scene.Viewport.Height);
             return new Vector2i(x, y);
         }
 
         private Vector3f PointToViewport(Vector3f point)
         {
-            var x = (point.X * _viewport.Distance) / point.Z;
-            var y = (point.Y * _viewport.Distance) / point.Z;
-            return new Vector3f(x, y, _viewport.Distance);
+            var x = (point.X * Scene.Viewport.Distance) / point.Z;
+            var y = (point.Y * Scene.Viewport.Distance) / point.Z;
+            return new Vector3f(x, y, Scene.Viewport.Distance);
         }
     }
 }

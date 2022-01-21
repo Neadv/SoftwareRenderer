@@ -1,80 +1,40 @@
 using System;
-using System.Collections.Generic;
 using SoftwareRenderer.Common;
 
 namespace SoftwareRenderer.RayTracer
 {
     public class SoftwareRayTracer : IRenderer
     {
-        private Vector3f _cameraPos;
-        private Viewport _viewport;
         private Scene _scene;
         private ICanvas _canvas;
 
-        public void Initialization(ICanvas canvas)
-        {
-            _canvas = canvas;
-            _cameraPos = new Vector3f(0);
-            _viewport = new Viewport(1, 1, 1);
+        public event Action RenderStarted;
+        public event Action RenderFinished;
 
-            _scene = new Scene
-            {
-                Spheres = new List<Sphere>
-                {
-                    new Sphere(
-                        pos: new Vector3f(0, -1, 3),
-                        r: 1,
-                        color: Color.Red,
-                        specular: 500,
-                        reflective: 0.2f
-                    ),
-                    new Sphere(
-                        pos: new Vector3f(2, 0, 4),
-                        r: 1,
-                        color: Color.Blue,
-                        specular: 500,
-                        reflective: 0.3f
-                    ),
-                    new Sphere(
-                        pos: new Vector3f(-2, 0, 4),
-                        r: 1,
-                        color: Color.Green,
-                        specular: 10,
-                        reflective: 0.4f
-                    ),
-                    new Sphere(
-                        pos: new Vector3f(0, -5001, 0),
-                        r: 5000,
-                        color: new Color(255, 255, 0),
-                        specular: 1000,
-                        reflective: 0.5f
-                    )
-                },
-                Lights = new List<Light>
-                {
-                    Light.CreateAmbient(0.2f),
-                    Light.CreatePoint(0.6f, new Vector3f(2, 1, 0)),
-                    Light.CreateDirectional(0.2f, new Vector3f(1, 4, 4))
-                }
-            };
+        public void Setup(Scene scene, ICanvas canvas)
+        { 
+            _scene = scene ?? throw new ArgumentNullException(nameof(scene));
+            _canvas = canvas ?? throw new ArgumentNullException(nameof(canvas)); 
         }
 
         public void Render()
         {
+            RenderStarted?.Invoke();
             for (int y = -_canvas.Height / 2; y <= _canvas.Height / 2; y++)
             {
                 for (int x = -_canvas.Width / 2; x <= _canvas.Width / 2; x++)
                 {
-                    float posX = x * _viewport.Width / _canvas.Width;
-                    float posY = y * _viewport.Height / _canvas.Height;
-                    float posZ = _viewport.Distance;
+                    float posX = x * _scene.Viewport.Width / _canvas.Width;
+                    float posY = y * _scene.Viewport.Height / _canvas.Height;
+                    float posZ = _scene.Viewport.Distance;
 
-                    var dir = (new Vector3f(posX, posY, posZ) - _cameraPos).Normalize();
+                    var dir = (new Vector3f(posX, posY, posZ) - _scene.CameraPosition).Normalize();
 
-                    var pixel = TraceRay(_cameraPos, dir, 3, 0.05f, float.MaxValue);
+                    var pixel = TraceRay(_scene.CameraPosition, dir, 3, 0.05f, float.MaxValue);
                     _canvas.Set(x, y, pixel);
                 }
             }
+            RenderFinished?.Invoke();
         }
 
         private Color TraceRay(Vector3f center, Vector3f dir, int recursionDepth, float minDist = 0.01f, float maxDist = float.MaxValue)
@@ -99,7 +59,7 @@ namespace SoftwareRenderer.RayTracer
             var reflectedDir = -dir.Reflect(normal);
             var reflectedColor = TraceRay(pos, reflectedDir, recursionDepth - 1, minDist, maxDist);
 
-            return localColor * (1 - closestSphere.Reflective) + reflectedColor * (closestSphere.Reflective); 
+            return localColor * (1 - closestSphere.Reflective) + reflectedColor * (closestSphere.Reflective);
         }
 
         private float ClosestIntersection(Vector3f center, Vector3f dir, out Sphere closestSphere, float minDist = 0.01f, float maxDist = float.MaxValue)

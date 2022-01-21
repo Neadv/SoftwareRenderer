@@ -1,4 +1,5 @@
 ﻿using SoftwareRenderer.Common;
+using SoftwareRenderer.Rasterizer.Models;
 using System.Collections.Generic;
 
 namespace SoftwareRenderer.Rasterizer

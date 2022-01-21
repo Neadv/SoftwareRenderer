@@ -1,17 +1,19 @@
 ﻿using SoftwareRenderer.Common;
+using SoftwareRenderer.Rasterizer.Models;
 using System.Collections.Generic;
 
 namespace SoftwareRenderer.Rasterizer
 {
     public class Scene
     {
-        public List<Instance> Instances { get; set; }
-        public List<Light> Lights { get; set; }
+        public Camera Camera { get; set; }
+        public Viewport Viewport { get; set; }
+        public List<Instance> Instances { get; set; } = new List<Instance>();
+        public List<Light> Lights { get; set; } = new List<Light>();
 
         public Scene()
         {
-            Instances = new List<Instance>();
-            Lights = new List<Light>();
+
         }
 
         public Scene(Scene scene)
