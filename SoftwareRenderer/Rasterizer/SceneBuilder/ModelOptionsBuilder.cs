@@ -7,7 +7,7 @@ namespace SoftwareRenderer.Rasterizer.SceneBuilder
 {
     public class ModelOptionsBuilder
     {
-        public Instance Instance => new Instance(_mesh, _position, _orientation, _scale) { Texture = _texture };
+        public Model Instance => new Model(_mesh, _position, _orientation, _scale) { Texture = _texture };
 
         private Mesh _mesh = null;
         private Image _texture = null;

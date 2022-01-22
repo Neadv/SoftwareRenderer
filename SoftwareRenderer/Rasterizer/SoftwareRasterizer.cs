@@ -60,11 +60,11 @@ namespace SoftwareRenderer.Rasterizer
         {
             foreach (var triangle in mesh.Triangles)
             {
-                RenderTriangle(triangle, mesh.Vertices, lights, orientation, texture);
+                RenderTriangle(triangle, mesh.Vertices, mesh.Normals, mesh.UVs, lights, orientation, texture);
             }
         }
 
-        private void RenderTriangle(Triangle triangle, IList<Vector3f> vertices, IEnumerable<Light> lights, Matrix4x4 orientation, Image texture)
+        private void RenderTriangle(Triangle triangle, IList<Vector3f> vertices, IList<Vector3f> normals, IList<Vector2f> uvs, IEnumerable<Light> lights, Matrix4x4 orientation, Image texture)
         {
             var v0 = vertices[triangle.V0];
             var v1 = vertices[triangle.V1];
@@ -81,7 +81,12 @@ namespace SoftwareRenderer.Rasterizer
             var p2 = PointToCanvas(v2);
 
             float[] zPositions = new float[3] { v0.Z, v1.Z, v2.Z };
-            Vector3f[] normals = new Vector3f[3] { triangle.N0, triangle.N1, triangle.N2 };
+            Vector3f[] triangleNormals = new Vector3f[3] 
+            { 
+                normals[triangle.N0], 
+                normals[triangle.N1], 
+                normals[triangle.N2] 
+            };
             if (texture == null)
             {
                 _triangleRasterizer.DrawShadedTriangle
@@ -90,7 +95,7 @@ namespace SoftwareRenderer.Rasterizer
                     p1,
                     p2,
                     zPositions,
-                    normals,
+                    triangleNormals,
                     lights,
                     orientation,
                     triangle.Color
@@ -98,16 +103,21 @@ namespace SoftwareRenderer.Rasterizer
             }
             else
             {
-                Vector2f[] uvs = new Vector2f[3] { triangle.UV0, triangle.UV1, triangle.UV2 };
+                Vector2f[] triangleUvs = new Vector2f[3] 
+                { 
+                    uvs[triangle.UV0], 
+                    uvs[triangle.UV1], 
+                    uvs[triangle.UV2] 
+                };
                 _triangleRasterizer.DrawTexturedTriangle
                 (
                     p0,
                     p1,
                     p2,
                     zPositions,
-                    uvs,
+                    triangleUvs,
                     texture,
-                    normals,
+                    triangleNormals,
                     lights,
                     orientation
                 );

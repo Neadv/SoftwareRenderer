@@ -29,8 +29,14 @@ namespace SoftwareRenderer.Rasterizer.Models
                     int i0 = d * divs + i;
                     int i1 = (d + 1) * divs + (i + 1) % divs;
                     int i2 = divs * d + (i + 1) % divs;
-                    Triangles.Add(new Triangle(i0, i1, i2, Vertices[i0].Normalize(), Vertices[i1].Normalize(), Vertices[i2].Normalize(), color));
-                    Triangles.Add(new Triangle(i0, i0 + divs, i1, Vertices[i0].Normalize(), Vertices[i0 + divs].Normalize(), Vertices[i1].Normalize(), color));
+
+                    Normals.Add(Vertices[i0].Normalize());
+                    Normals.Add(Vertices[i1].Normalize());
+                    Normals.Add(Vertices[i2].Normalize());
+                    Normals.Add(Vertices[i0 + divs].Normalize());
+
+                    Triangles.Add(new Triangle(i0, i1, i2, Normals.Count - 4, Normals.Count - 3, Normals.Count - 2, color));
+                    Triangles.Add(new Triangle(i0, i0 + divs, i1, Normals.Count - 4, Normals.Count - 1, Normals.Count - 3, color));
                 }
             }
 

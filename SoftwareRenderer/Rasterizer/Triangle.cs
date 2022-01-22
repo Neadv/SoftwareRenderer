@@ -7,16 +7,16 @@ namespace SoftwareRenderer.Rasterizer
         public int V0 { get; }
         public int V1 { get; }
         public int V2 { get; }
-        public Vector3f N0 { get; set; }
-        public Vector3f N1 { get; set; }
-        public Vector3f N2 { get; set; }
+        public int N0 { get; set; }
+        public int N1 { get; set; }
+        public int N2 { get; set; }
         public Color Color { get; }
 
-        public Vector2f UV0 { get; set; }
-        public Vector2f UV1 { get; set; }
-        public Vector2f UV2 { get; set; }
+        public int UV0 { get; set; }
+        public int UV1 { get; set; }
+        public int UV2 { get; set; }
 
-        public Triangle(int v0, int v1, int v2, Vector3f n0, Vector3f n1, Vector3f n2, Color color)
+        public Triangle(int v0, int v1, int v2, int n0, int n1, int n2, Color color)
         {
             V0 = v0;
             V1 = v1;
@@ -26,10 +26,10 @@ namespace SoftwareRenderer.Rasterizer
             N2 = n2;
             Color = color;
 
-            UV0 = UV1 = UV2 = new Vector2f(0);
+            UV0 = UV1 = UV2 = 0;
         }
 
-        public Triangle(int v0, int v1, int v2, Vector3f n0, Vector3f n1, Vector3f n2, Vector2f uv0, Vector2f uv1, Vector2f uv2, Color color)
+        public Triangle(int v0, int v1, int v2, int n0, int n1, int n2, int uv0, int uv1, int uv2, Color color)
         {
             V0 = v0;
             V1 = v1;

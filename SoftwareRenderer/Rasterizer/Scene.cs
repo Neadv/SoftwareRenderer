@@ -8,7 +8,7 @@ namespace SoftwareRenderer.Rasterizer
     {
         public Camera Camera { get; set; }
         public Viewport Viewport { get; set; }
-        public List<Instance> Instances { get; set; } = new List<Instance>();
+        public List<Model> Instances { get; set; } = new List<Model>();
         public List<Light> Lights { get; set; } = new List<Light>();
 
         public Scene()

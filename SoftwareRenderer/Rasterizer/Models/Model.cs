@@ -2,7 +2,7 @@
 
 namespace SoftwareRenderer.Rasterizer.Models
 {
-    public class Instance
+    public class Model
     {
         public Mesh Mesh { get; }
         public Matrix4x4 Transform { get; }
@@ -13,7 +13,7 @@ namespace SoftwareRenderer.Rasterizer.Models
         public Vector3f Position { get; }
 
 
-        public Instance(Mesh mesh, Vector3f position, Matrix4x4 orientation, float scale)
+        public Model(Mesh mesh, Vector3f position, Matrix4x4 orientation, float scale)
         {
             Mesh = mesh;
 
@@ -24,15 +24,15 @@ namespace SoftwareRenderer.Rasterizer.Models
             Transform = TransformHelper.MakeTranslationMatrix(position) * (orientation * TransformHelper.MakeScalingMatrix(scale));
         }
 
-        public Instance(Mesh mesh, Vector3f position)
+        public Model(Mesh mesh, Vector3f position)
             : this(mesh, position, Matrix4x4.Identity, 1)
         { }
 
-        public Instance(Mesh mesh, Vector3f position, float scale)
+        public Model(Mesh mesh, Vector3f position, float scale)
             : this(mesh, position, Matrix4x4.Identity, scale)
         { }
 
-        public Instance(Mesh mesh)
+        public Model(Mesh mesh)
         {
             Mesh = mesh;
 
