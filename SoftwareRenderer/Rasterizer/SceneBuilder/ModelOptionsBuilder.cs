@@ -21,6 +21,12 @@ namespace SoftwareRenderer.Rasterizer.SceneBuilder
             return this;
         }
 
+        public ModelOptionsBuilder FromObjFile(string path)
+        {
+            _mesh = ObjLoader.LoadMeshFromFile(path);
+            return this;
+        }
+
         public ModelOptionsBuilder SetCube(float a, Color color)
         {
             _mesh = new CubeMesh(a, color);
