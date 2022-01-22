@@ -68,6 +68,8 @@ namespace SoftwareRenderer.Common
         {
             if (x < 0 || x >= Width || y < 0 || y >= Height)
                 return Color.Black;
+            
+            y = Height - y - 1; // Set center to left bottom corner
 
             int index = 4 * (y * Width + x);
 
@@ -76,12 +78,6 @@ namespace SoftwareRenderer.Common
 
         public Color Get(float x, float y)
         {
-            if (x < 0 || x > 1)
-                throw new ArgumentOutOfRangeException(nameof(x));
-
-            if (y < 0 || y > 1)
-                throw new ArgumentOutOfRangeException(nameof(y));
-
             return Get((int)(x * Width), (int)(y * Height));
         }
 

@@ -308,7 +308,11 @@ namespace SoftwareRenderer.Rasterizer
             }
 
             // Draw the horizontal segments
-            for (int y = p0.Y; y < p2.Y; y++)
+            if (p2.Y - p0.Y == 1)
+            {
+
+            }
+            for (int y = p0.Y; y <= p2.Y; y++)
             {
                 int x_l = (int)x_left[y - p0.Y];
                 int x_r = (int)x_right[y - p0.Y];
@@ -324,7 +328,7 @@ namespace SoftwareRenderer.Rasterizer
                 float[] uvx_segment = MathHelper.Interpolate(x_l, uvx_left[y - p0.Y], x_r, uvx_right[y - p0.Y]);
                 float[] uvy_segment = MathHelper.Interpolate(x_l, uvy_left[y - p0.Y], x_r, uvy_right[y - p0.Y]);
 
-                for (int x = x_l; x < x_r; x++)
+                for (int x = x_l; x <= x_r; x++)
                 {
                     float z = z_segment[x - x_l];
                     if (z > _zBuffer.Get(x, y))
