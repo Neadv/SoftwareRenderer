@@ -11,8 +11,8 @@ namespace SoftwareRenderer
 {
     class Program
     {
-        public const int Width = 500;
-        public const int Height = 500;
+        public const int Width = 1024;
+        public const int Height = 1024;
 
         static void Main(string[] args)
         {
@@ -115,12 +115,25 @@ namespace SoftwareRenderer
                         .SetTextureFromFile("Textures/crate-texture.jpg");
             sceneBuilder.AddModel()
                         .SetCube(2, Color.White)
-                        .SetPosition(new Vector3f(1.25f, 2.5f, 7.5f))
-                        .SetOrientation(TransformHelper.MakeOYRotationMatrix(195))
-                        .SetTextureFromFile("Textures/wall.jpg");
+                        .SetPosition(new Vector3f(-1.0f, -0.5f, 5))
+                        .SetScale(0.4f)
+                        .SetOrientation(TransformHelper.MakeOYRotationMatrix(45))
+                        .SetTextureFromFile("Textures/planks.jpg");
+            sceneBuilder.AddModel()
+                        .FromObjFile("Models/cat.obj")
+                        .SetTextureFromFile("Textures/cat.jpg")
+                        .SetScale(0.8f)
+                        .SetPosition(new Vector3f(3.5f, -0.8f, 8.5f))
+                        .SetOrientation(TransformHelper.MakeOYRotationMatrix(100));
+            sceneBuilder.AddModel()
+                        .FromObjFile("Models/skull.obj")
+                        .SetTextureFromFile("Textures/skull.jpg")
+                        .SetScale(0.65f)
+                        .SetPosition(new Vector3f(-1f, 2.5f, 9f))
+                        .SetOrientation(TransformHelper.MakeOYRotationMatrix(180));
             sceneBuilder.AddModel()
                         .SetSphere(1, Color.Green)
-                        .SetPosition(new Vector3f(1.75f, -0.5f, 7))
+                        .SetPosition(new Vector3f(1.75f, 2.5f, 7))
                         .SetScale(1.5f);
 
             sceneBuilder.AddLight().SetIntensity(0.2f).SetType(LightType.Ambient);
@@ -151,6 +164,7 @@ namespace SoftwareRenderer
             Console.WriteLine($"Save: {sw.ElapsedMilliseconds}ms");
 
             swTotal.Stop();
+            Console.WriteLine($"Triangles rendered: {renderer.TrianglesRendered}");
             Console.WriteLine($"Total: {swTotal.ElapsedMilliseconds}ms");
         }
     }
